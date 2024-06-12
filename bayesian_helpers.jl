@@ -1,6 +1,11 @@
 using LinearAlgebra
+using Optim
+using ForwardDiff
+using Distributions
+using Plots
 
 identity_func(x) = x
+
 
 function calc_log_posterior(x,y, cov_x, cov_y, mu_x, f=identity_func)
     n_x = length(x)
@@ -18,7 +23,30 @@ function calc_log_posterior(x,y, cov_x, cov_y, mu_x, f=identity_func)
    return log_prior + log_likelihood
 end  
 
-# Test cases
+
+
+# Find MAP 
+function find_map(initial_guess, objective)
+    opt = optimize(objective,initial_guess, LBFGS())
+    println(opt)
+    map = Optim.minimizer(opt)
+    return map
+end
+
+
+
+
+function laplace_approx(map, neg_log_posterior)
+    # Compute Hessian at the MAP 
+    hess = ForwardDiff.hessian(neg_log_posterior, map)
+    cov_matrix = inv(hess)
+    return cov_matrix 
+end 
+
+
+
+########################## Test cases ##############################
+#test calc log posterior
 x = [1.0]
 y = [1.35]
 cov_x = reshape([1.0], 1, 1)  # Define cov_x as a 1x1 matrix
@@ -26,27 +54,27 @@ cov_y = reshape([2.0], 1, 1)  # Define cov_y as a 1x1 matrix
 mu_x = [0.5]
 println(calc_log_posterior(x, y, cov_x, cov_y, mu_x))
 
-# Define a range of x values
-x_range = range(-5, stop=5, length=100)
 
-# Calculate the objective function values for each x value
-objective_values = [-calc_log_posterior([x_val], y, cov_x, cov_y, mu_x) for x_val in x_range]
-
-# Plot the objective function
-using Plots
-plot(x_range, objective_values, xlabel="x", ylabel="Objective", label="Objective Function", legend=:bottomright)
-
-using Optim
-function find_map(initial_guess, x,y,cov_x,cov_y, mu_x, f=identity_func)
-    objective(x) = -calc_log_posterior(x,y,cov_x,cov_y,mu_x,f)
-    opt = optimize(objective,initial_guess, LBFGS())
-    println(opt)
-    map = Optim.minimizer(opt)
-    return map
-end
-
-#fails to converge
+#test MAP estimate
 initial = [1.0]
-map_estimate = find_map(initial, x, y, cov_x, cov_y, mu_x)
+neg_log_posterior(x) = -calc_log_posterior(x,y,cov_x,cov_y,mu_x)
+map_estimate = find_map(initial, neg_log_posterior)
+
 println(map_estimate)
 
+#test Laplace approximation 
+cov_matrix = laplace_approx(map_estimate, neg_log_posterior)
+println("laplace approx cov matrix ", cov_matrix)
+
+#visualize Laplace approximation and true posterior
+
+x_range = range(0, stop=1.5, length=500)
+
+posterior_values = [calc_log_posterior([x_val], y, cov_x, cov_y, mu_x) for x_val in x_range]
+
+gaussian_approx = [log(pdf(Normal(map_estimate[1], sqrt(cov_matrix[1,1])), x)) for x in posterior_values]
+
+plot(x_range, posterior_values, label="True Log Posterior", xlabel="x", legend=:bottom)
+plot!(x_range, gaussian_approx, label="Log Gaussian Approximation (Laplace)")
+vline!([map_estimate[1]], label="MAP estimate", linestyle=:dash, color=:red)
+# plot(x_range, objective_values, xlabel="x", ylabel="Objective", label="Objective Function", legend=:bottomright)
