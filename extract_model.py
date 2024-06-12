@@ -1,6 +1,8 @@
 import numpy as np
 import h5py 
 
-f = h5py.File('example_oco2_linear_model_201510_lamont.h5', 'r')
+filepath = '/Users/Camila/Desktop/OCO-2 UROP/spatiotemp-oco2/linear_oco_model/example_oco2_linear_model_201706_wollongong.h5'
+with h5py.File(filepath, 'r') as f:
+    Fmatrix = f['model_matrix'][:,:]
 
-Fmatrix = f['model_matrix'][:,:]
+np.save('example_oco2_linear_model_201706_wollongong.npy', Fmatrix)
