@@ -39,6 +39,7 @@ end
 function laplace_approx(map, neg_log_posterior)
     # Compute Hessian at the MAP 
     hess = ForwardDiff.hessian(neg_log_posterior, map)
+    println("hess ", hess)
     cov_matrix = inv(hess)
     return cov_matrix 
 end 
@@ -60,7 +61,8 @@ initial = [1.0]
 neg_log_posterior(x) = -calc_log_posterior(x,y,cov_x,cov_y,mu_x)
 map_estimate = find_map(initial, neg_log_posterior)
 
-println(map_estimate)
+println("MAP: ", map_estimate)
+# @assert calc_log_posterior(map_estimate,y,cov_x,cov_y,mu_x) == neg_log_posterior(map_estimate)
 
 #test Laplace approximation 
 cov_matrix = laplace_approx(map_estimate, neg_log_posterior)
@@ -68,11 +70,14 @@ println("laplace approx cov matrix ", cov_matrix)
 
 #visualize Laplace approximation and true posterior
 
-x_range = range(0, stop=1.5, length=500)
+x_range = range(-3, stop=4.5, length=500)
 
 posterior_values = [calc_log_posterior([x_val], y, cov_x, cov_y, mu_x) for x_val in x_range]
 
-gaussian_approx = [log(pdf(Normal(map_estimate[1], sqrt(cov_matrix[1,1])), x)) for x in posterior_values]
+println("log posterior at MAP ", calc_log_posterior(map_estimate[1], y, cov_x, cov_y, mu_x))
+println("log Laplace approx at MAP ", log(pdf(Normal(map_estimate[1], cov_matrix[1,1]), map_estimate[1])))
+
+gaussian_approx = [log(pdf(Normal(map_estimate[1], cov_matrix[1,1]), x_val)) for x_val in x_range]
 
 plot(x_range, posterior_values, label="True Log Posterior", xlabel="x", legend=:bottom)
 plot!(x_range, gaussian_approx, label="Log Gaussian Approximation (Laplace)")
