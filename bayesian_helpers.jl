@@ -66,7 +66,6 @@ end
 function laplace_approx(map, neg_log_posterior)
     # Compute Hessian at the MAP 
     hess = ForwardDiff.hessian(neg_log_posterior, map)
-    println("hess ", hess)
     cov_matrix = inv(hess)
     return cov_matrix 
 end 
