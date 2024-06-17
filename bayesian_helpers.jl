@@ -4,6 +4,9 @@ using ForwardDiff
 using Distributions
 using Plots
 
+
+save_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots"
+
 identity_func(x) = x
 
 
@@ -55,7 +58,7 @@ function find_map(initial_guess, objective)
     
     # println(opt.trace)
     map = Optim.minimizer(opt)
-    return map
+    return map, objective_plot, gradient_plot 
 end
 
 
@@ -70,6 +73,14 @@ function laplace_approx(map, neg_log_posterior)
     return cov_matrix 
 end 
 
+
+
+
+function calc_true_posterior(prior_cov, prior_mean, F_matrix, error_cov, Y)
+    posterior_cov = inv(inv(prior_cov) + F_matrix'*inv(error_cov)*F_matrix)
+    MAP = posterior_cov*(inv(prior_cov)*prior_mean + F_matrix'*inv(error_cov)*Y)
+    return MAP, posterior_cov
+end
 ########################## Univariate Test cases ##############################
 #test calc log posterior
 x = [1.0]
@@ -83,7 +94,7 @@ println(calc_log_posterior(x, y, cov_x, cov_y, mu_x))
 #test MAP estimate
 initial = [1.0]
 neg_log_posterior(x) = -calc_log_posterior(x,y,cov_x,cov_y,mu_x)
-map_estimate = find_map(initial, neg_log_posterior)
+map_estimate = find_map(initial, neg_log_posterior)[1]
 
 println("MAP: ", map_estimate)
 # @assert calc_log_posterior(map_estimate,y,cov_x,cov_y,mu_x) == neg_log_posterior(map_estimate)
@@ -103,7 +114,7 @@ println("log Laplace approx at MAP ", log(pdf(Normal(map_estimate[1], sqrt(cov_m
 
 gaussian_approx = [log(pdf(Normal(map_estimate[1], sqrt(cov_matrix[1,1])), x_val)) for x_val in x_range]
 
-plot(x_range, posterior_values, label="True Log Posterior", xlabel="x", legend=:bottom)
+log_post_vs_estimate_plot = plot(x_range, posterior_values, label="True Log Posterior", xlabel="x", legend=:bottom)
 plot!(x_range, gaussian_approx, label="Log Gaussian Approximation (Laplace)")
 vline!([map_estimate[1]], label="MAP estimate", linestyle=:dash, color=:red)
-# plot(x_range, objective_values, xlabel="x", ylabel="Objective", label="Objective Function", legend=:bottomright)
+savefig(log_post_vs_estimate_plot, joinpath(save_dir, "1D-LogPosterior-vs-Estimate.pdf"))
