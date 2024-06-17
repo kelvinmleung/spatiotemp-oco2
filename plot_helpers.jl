@@ -15,7 +15,7 @@ function plot_CO2_by_level(true_x, MAP, posterior_cov, est_MAP, est_cov, bar_wid
     bar!(x .+ bar_width, est_CO2, bar_width=bar_width, label="Estimate CO2", color=:palevioletred, yerr=est_CO2_stds)
     xlabel!("Level")
     ylabel!("CO2 [ppm]")
-    ylims!(360,420)
+    ylims!(375,425)
     return plot
 end 
 
@@ -24,8 +24,8 @@ function plot_vertical_profile(estimate_CO2,prior_mean, MAP_CO2=zeros(20), true_
     plt = plot(x, estimate_CO2[1:20], 
      seriestype=:line,  
      label="Estimate", 
-     xlabel="CO2 [ppm]", 
-     ylabel="Vertical Level",  
+     xlabel="Vertical Level", 
+     ylabel="CO2 [ppm]",  
      linecolor=:blue, 
      linewidth=2, 
      legend=:bottomright)
@@ -36,7 +36,7 @@ function plot_vertical_profile(estimate_CO2,prior_mean, MAP_CO2=zeros(20), true_
         label="Prior",
         linecolor=:black,
         linewidth=2)
-        
+
      ylims!(plt, 390,410)
 
     # Check if MAP_CO2 is not all zeros and plot if it's not
@@ -82,6 +82,6 @@ function plot_col_avg_co2(h_matrix, MAP_est, posterior_cov_est, MAP=zeros(20), t
         push!(std_devs, 0)
     end 
     ColAvgCO2_plot = bar(labels, values, yerr=std_devs, bar_width=0.5, title="Column Average CO2 Concentration Comparison", ylabel="CO2 [ppm]", legend=false)
-    ylims!(350,450)
+    ylims!(370,420)
     return ColAvgCO2_plot
 end

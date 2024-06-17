@@ -30,7 +30,7 @@ end
 
 # Find MAP 
 function find_map(initial_guess, objective)
-    opt = optimize(objective, initial_guess, LBFGS(m=20), Optim.Options(store_trace = true, iterations = 1000, g_tol =0.25, allow_f_increases=false, ))
+    opt = optimize(objective, initial_guess, LBFGS(m=25), Optim.Options(store_trace = true, iterations = 1000, g_tol =0.05))
     println(opt)
     trace = opt.trace
     # println(trace)
