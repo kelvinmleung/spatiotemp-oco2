@@ -85,3 +85,34 @@ function plot_col_avg_co2(h_matrix, MAP_est, posterior_cov_est, MAP=zeros(20), t
     ylims!(370,420)
     return ColAvgCO2_plot
 end
+
+function plot_radiances(wavelengths, radiances)
+    #Plot the Strong CO2 band
+    strong_CO2_plt = plot(wavelengths[1:1016], radiances[1:1016],
+    seriestype=:line,
+    xlabel="Wavelength",
+    ylabel="Radiance",
+    linecolor=:red,
+    linewidth=1,
+    label="Strong CO2 Band Radiance")
+
+    #Plot the Weak CO2 band
+    weak_CO2_plt = plot(wavelengths[1017:2032], radiances[1017:2032],
+    seriestype=:line,
+    xlabel="Wavelength",
+    ylabel="Radiance",
+    linecolor=:green,
+    linewidth=1,
+    label="Weak CO2 Band Radiance")
+
+    #Plot the O2 band
+    O2_plt = plot(wavelengths[2033:3048], radiances[2033:3048],
+    seriestype=:line,
+    xlabel="Wavelength",
+    ylabel="Radiance",
+    linecolor=:blue,
+    linewidth=1,
+    label="O2 Band Radiance")
+
+    return strong_CO2_plt,weak_CO2_plt,O2_plt
+end
