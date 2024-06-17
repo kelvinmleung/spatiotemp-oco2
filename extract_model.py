@@ -1,7 +1,7 @@
 import numpy as np
 import h5py 
 
-filepath = '/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/linear_oco_model/example_oco2_linear_model_201612_wollongong.h5'
+filepath = '/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/linear_oco_model/example_oco2_linear_model_201706_wollongong.h5'
 with h5py.File(filepath, 'r') as f:
     Fmatrix = f['model_matrix'][:,:]
     true_x = f['state_true_mean_vector'][:]
@@ -17,8 +17,9 @@ with h5py.File(filepath, 'r') as f:
 
     print(f['state_vector_names'][:])
 
-np.save("weighting_func_2015-10_lamont.npy", weighting_func)
-# np.save('true_state_vector_2015-10_lamont.npy', true_x)
-# np.save('prior_mean_2015-10_lamont.npy', prior_mean_x)
-# np.save('prior_cov_matrix_2015-10_lamont.npy', prior_cov_x)
-# np.save('error_variance_2015-10_lamont.npy', error_variance)
+np.save("linear_model_Wollongong2017.npy", Fmatrix)
+np.save("weighting_func_Wollongong2017.npy", weighting_func)
+np.save('true_state_vector_Wollongong2017.npy', true_x)
+np.save('prior_mean_Wollongong2017.npy', prior_mean_x)
+np.save('prior_cov_matrix_Wollongong2017.npy', prior_cov_x)
+np.save('error_variance_Wollongong2017.npy', error_variance)
