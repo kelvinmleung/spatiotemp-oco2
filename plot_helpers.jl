@@ -19,9 +19,9 @@ function plot_CO2_by_level(true_x, MAP, posterior_cov, est_MAP, est_cov, bar_wid
     return plot
 end 
 
-function plot_vertical_profile(estimate_CO2, MAP_CO2=zeros(20), true_CO2=zeros(20))
+function plot_vertical_profile(estimate_CO2,prior_mean, MAP_CO2=zeros(20), true_CO2=zeros(20))
     x = 1:20
-    plt = plot(x, estimate_CO2, 
+    plt = plot(x, estimate_CO2[1:20], 
      seriestype=:line,  
      label="Estimate", 
      xlabel="CO2 [ppm]", 
@@ -29,11 +29,19 @@ function plot_vertical_profile(estimate_CO2, MAP_CO2=zeros(20), true_CO2=zeros(2
      linecolor=:blue, 
      linewidth=2, 
      legend=:bottomright)
+
+     plot!(x,prior_mean[1:20], 
+        seriestype=:line,
+        linestyle=:dot,
+        label="Prior",
+        linecolor=:black,
+        linewidth=2)
+        
      ylims!(plt, 390,410)
 
     # Check if MAP_CO2 is not all zeros and plot if it's not
     if any(MAP_CO2 .!= 0)
-        plot!(plt, x, MAP_CO2, 
+        plot!(plt, x, MAP_CO2[1:20], 
               seriestype=:line,  
               label="MAP", 
               linecolor=:red, 
@@ -42,7 +50,7 @@ function plot_vertical_profile(estimate_CO2, MAP_CO2=zeros(20), true_CO2=zeros(2
 
     # Check if true_CO2 is not all zeros and plot if it's not
     if any(true_CO2 .!= 0)
-        plot!(plt, x,true_CO2, 
+        plot!(plt, x,true_CO2[1:20], 
               seriestype=:line,
               label="True", 
               linecolor=:green, 

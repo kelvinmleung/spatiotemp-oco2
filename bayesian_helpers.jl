@@ -30,13 +30,13 @@ end
 
 # Find MAP 
 function find_map(initial_guess, objective)
-    opt = optimize(objective, initial_guess, LBFGS(), Optim.Options(store_trace = true, iterations = 500, g_tol =25))
+    opt = optimize(objective, initial_guess, LBFGS(m=20), Optim.Options(store_trace = true, iterations = 1000, g_tol =0.25, allow_f_increases=false, ))
     println(opt)
     trace = opt.trace
     # println(trace)
     trace_objective = []
     trace_gradient = []
-    iterations = 1:length(trace)
+    iterations = 5:length(trace)
     
     for i in iterations
         append!(trace_objective, parse(Float64, split(string(trace[i]))[2]))
