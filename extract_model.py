@@ -16,7 +16,7 @@ with h5py.File(filepath, 'r') as f:
         dataset = f[key]
         print(f"Key: {key}, Shape: {dataset.shape}")
 
-    print(f['state_vector_names'][:])
+    print(f['state_vector_names'][38:39])
 
 # np.save("wavelengths.npy", wavelength)
 # np.save("Wollongong-2017/linear_model_Wollongong2017.npy", Fmatrix)
