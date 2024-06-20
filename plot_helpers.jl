@@ -177,7 +177,7 @@ function plot_modified_radiances(wavelengths, true_radiances, modified_radiences
 end
 
 function plot_radiance_differences(wavelengths, true_rads, modified_rads, label)
-    diff = modified_rads .- true_rads 
+    diff = (modified_rads .- true_rads) 
 
     strong_ymin = minimum(diff[1:1016])
     strong_ymax = maximum(diff[1:1016])
