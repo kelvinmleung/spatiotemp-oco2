@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>refractor_setup</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<p>ReFRACtor Setup for OCO-2</p>
+<p>Key software packages</p>
+<ul>
+<li>ReFRACtor <code>framework</code>: Base library for ReFRACtor</li>
+<li>ReFRACtor <code>oco</code>: Base library for ReFRACtor</li>
+<li>UQ <code>uq_simulation</code>: UQ-specific support functions, not dependent on other ReFRACtor packages</li>
+</ul>
+<p>External information</p>
+<ul>
+<li><a href="https://github.jpl.nasa.gov/pages/refractor/documentation/index.html">ReFRACtor Documentation</a></li>
+<li><a href="https://docs.anaconda.com/anaconda/install/">Anaconda Generic Documentation</a></li>
+</ul>
+<p>Anaconda Installation</p>
+<ul>
+<li>Enable channels:
+<ul>
+<li><code>conda config --append channels conda-forge</code><br />
+</li>
+<li><code>conda config --append channels refractor</code></li>
+</ul></li>
+<li>Use refractor channel, and create a specific environment (refracenv):
+<ul>
+<li><code>conda create -c refractor -n refracenv refractor-framework</code></li>
+</ul></li>
+<li>Activate
+<ul>
+<li><code>conda activate refracenv</code></li>
+</ul></li>
+<li>OCO package
+<ul>
+<li><code>conda install -c refractor refractor-oco</code></li>
+</ul></li>
+<li>Other packages that might be needed for UQ efforts
+<ul>
+<li>pandas</li>
+</ul></li>
+<li>Other possible modifications:
+<ul>
+<li>Line 8 of <code>/Users/jhobbs/miniconda3/envs/refracenv/etc/oco/config/retrieval_config.py</code>: Change <code>from .base_config import base_config_definition</code> to <code>from base_config import base_config_definition</code></li>
+<li>ABSCO tables are needed, download link available via <a href="https://ocov2.jpl.nasa.gov/oco-2-data-center/">OCO-2 Data Center</a></li>
+<li>ABSCO_PATH: these environmental variables need to be set, and the supporting datasets need to be downloaded<br />
+Update paths in <code>/Users/jhobbs/miniconda/envs/refarcenv/etc/conda/activate.d/framework-activate.sh</code>:<br />
+<code>export ABSCO_PATH=/Users/jhobbs/Documents/Refractor_AIST/OCO_Input</code></li>
+<li>The absorber class may need to be updated to refer to the appropriate ABSCO file names: <code>/Users/jhobbs/miniconda3/envs/refracenv/etc/oco/config/base_config.py</code>. Lines 62, 74, 90</li>
+</ul></li>
+<li>Example forward model run: <code>fmtest_oco.py</code></li>
+</ul>
+<p>OCO System Build</p>
+<ul>
+<li>Source the ReFRACtor environment: <code>/home/jhobbs/.bashrc-refractor-c7</code></li>
+<li>Example OCO forward model runs:
+<ul>
+<li><code>/scratch-science/algorithm/jhobbs/refractor_oco2/fmexamp</code></li>
+</ul></li>
+</ul>
+</body>
+</html>
