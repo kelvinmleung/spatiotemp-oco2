@@ -19,42 +19,48 @@ function plot_CO2_by_level(true_x, MAP, posterior_cov, est_MAP, est_cov, bar_wid
     return plot
 end 
 
-function plot_vertical_profile(estimate_CO2,prior_mean, MAP_CO2=zeros(20), true_CO2=zeros(20))
-    x = 1:20
-    plt = plot(x, estimate_CO2[1:20], 
-     seriestype=:line,  
-     label="Estimate", 
-     xlabel="Vertical Level", 
-     ylabel="CO2 [ppm]",  
-     linecolor=:blue, 
-     linewidth=2, 
-     legend=:bottomright)
+function plot_vertical_profile(estimate_CO2,prior_mean, title, MAP_CO2=zeros(20), true_CO2=zeros(20))
+    level = 1:20
 
-     plot!(x,prior_mean[1:20], 
-        seriestype=:line,
-        linestyle=:dot,
+    plt = plot(estimate_CO2[1:20], 
+     level, 
+     title=title,  
+     label="Estimate", 
+     xlabel="CO2 [ppm]", 
+     ylabel="Vertical Level",   
+     legend=:bottomright, 
+     size = (300,600))
+
+     plot!(prior_mean[1:20], 
+        level,
+         linestyle=:dot,
         label="Prior",
         linecolor=:black,
-        linewidth=2)
+        # linewidth=2
+        )
 
-     ylims!(plt, 390,410)
+     xlims!(plt, 390,410)
 
     # Check if MAP_CO2 is not all zeros and plot if it's not
     if any(MAP_CO2 .!= 0)
-        plot!(plt, x, MAP_CO2[1:20], 
-              seriestype=:line,  
+        plot!(plt,MAP_CO2[1:20], 
+            level, 
+            #   seriestype=:line,  
               label="MAP", 
-              linecolor=:red, 
-              linewidth=2)
+            #   linecolor=:red, 
+            #   linewidth=2
+              )
     end
 
     # Check if true_CO2 is not all zeros and plot if it's not
     if any(true_CO2 .!= 0)
-        plot!(plt, x,true_CO2[1:20], 
-              seriestype=:line,
+        plot!(plt,true_CO2[1:20],
+            level, 
+            #   seriestype=:line,
               label="True", 
-              linecolor=:green, 
-              linewidth=2)
+            #   linecolor=:green, 
+            #   linewidth=2
+              )
     end
     return plt
     

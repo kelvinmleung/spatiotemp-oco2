@@ -91,6 +91,6 @@ display(CO2byLevel_plot)
 savefig(CO2byLevel_plot, joinpath(save_dir, "Lamont2015-CO2byLevel.png"))
 
 #plot vertical profile
-vertical_profile = plot_vertical_profile(map_estimate,prior_mean, true_map, true_x)
+vertical_profile = plot_vertical_profile(map_estimate,prior_mean, "Lamont 2015", true_map, true_x)
 display(vertical_profile)
 savefig(vertical_profile, joinpath(save_dir, "Lamont2015-VerticalProfile.png"))

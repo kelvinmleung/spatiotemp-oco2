@@ -114,7 +114,8 @@ println("log Laplace approx at MAP ", log(pdf(Normal(map_estimate[1], sqrt(cov_m
 
 gaussian_approx = [log(pdf(Normal(map_estimate[1], sqrt(cov_matrix[1,1])), x_val)) for x_val in x_range]
 
-log_post_vs_estimate_plot = plot(x_range, posterior_values, label="True Log Posterior", xlabel="x", legend=:bottom)
+log_post_vs_estimate_plot = plot(x_range, posterior_values, label="True Log Posterior", xlabel="x", legend=:bottom, ylabel="Log Posterior")
 plot!(x_range, gaussian_approx, label="Log Gaussian Approximation (Laplace)")
 vline!([map_estimate[1]], label="MAP estimate", linestyle=:dash, color=:red)
+display(log_post_vs_estimate_plot)
 savefig(log_post_vs_estimate_plot, joinpath(save_dir, "1D-LogPosterior-vs-Estimate.pdf"))

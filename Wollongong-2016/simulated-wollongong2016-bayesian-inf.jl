@@ -95,6 +95,6 @@ display(CO2byLevel_plot)
 savefig(CO2byLevel_plot, joinpath(save_dir, "Wollongong2016-CO2byLevel.png"))
 
 #plot vertical profile
-vertical_profile = plot_vertical_profile(map_estimate,prior_mean, true_map, true_x)
+vertical_profile = plot_vertical_profile(map_estimate,prior_mean, "Wollongong 2016", true_map, true_x)
 display(vertical_profile)
 savefig(vertical_profile, joinpath(save_dir, "Wollongong2016-VerticalProfile.png"))
