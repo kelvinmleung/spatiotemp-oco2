@@ -1,5 +1,3 @@
-include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/bayesian_helpers.jl")
-include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/plot_helpers.jl")
 using PyCall
 np = pyimport("numpy")
 using LinearAlgebra
@@ -32,8 +30,8 @@ diffusion_coef = 16.0/(10^6) # km^2 / s^-1
 t = 1/3 #interval between soundings in seconds
 l = sqrt(diffusion_coef * t) #km
 levels = 20
-footprints = 8
-cov = CovarianceFunction(1, Matern(l, 1)) # length scale 1/4, smoothness 3/4
+footprints = 100
+cov = CovarianceFunction(1, Matern(l, 1)) # length scale l, smoothness 1
 pts = range(0,10.4, footprints)
 
 
@@ -43,7 +41,7 @@ for loc in 1:3
     grf_samples = zeros(levels, footprints)
 
     for i in 1:levels
-        grf = GaussianRandomField(true_xCO2[i],cov, CirculantEmbedding(), pts, minpadding=17)
+        grf = GaussianRandomField(true_xCO2[i],cov, CirculantEmbedding(), pts, minpadding=201)
         sample_vector = sample(grf)
         for j in 1:footprints
             grf_samples[i,j] = sample_vector[j]
