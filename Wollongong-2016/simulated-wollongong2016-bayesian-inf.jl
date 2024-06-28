@@ -80,7 +80,7 @@ savefig(gradient_plot, joinpath(save_dir, "Wollongong2016-Gradient-vs-Iterations
 log_post_map = calc_log_posterior(true_map,sample_Y, prior_cov_matrix,error_cov_matrix,prior_mean, apply_forward_model)
 log_post_estimate = calc_log_posterior(map_estimate, sample_Y, prior_cov_matrix, error_cov_matrix, prior_mean, apply_forward_model)
 println("norm of difference with map ", norm(map_estimate .- true_map))
-println("difference in log posterior of map vs. estimate ", log_post_map - log_post_map_estimate)
+println("difference in log posterior of map vs. estimate ", log_post_map - log_post_estimate)
 
 
 

@@ -8,7 +8,6 @@ function plot_CO2_by_level(true_x, MAP, posterior_cov, est_MAP, est_cov, bar_wid
     est_CO2 = est_MAP[1:20]
     est_CO2_stds = sqrt.(diag(est_cov)[1:20])
 
-    true_stds = zeros(n)
     x = 1:20
     plot = bar(x .- bar_width, true_CO2, bar_width=bar_width, label="True CO2", color=:lightblue, legend=:bottomright, yerr=true_stds, size=(1200,600))
     bar!(x, MAP_CO2, bar_width=bar_width, label="MAP CO2", color=:mediumpurple, yerr=posterior_CO2_stds)

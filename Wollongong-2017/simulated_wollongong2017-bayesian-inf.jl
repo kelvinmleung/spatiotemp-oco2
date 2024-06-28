@@ -26,7 +26,7 @@ error_cov_matrix = Diagonal(error_variance)
 #Load prior cov and mean
 numpy_prior_mean = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Wollongong-2017/prior_mean_Wollongong2017.npy")
 prior_mean = convert(Array{Float64}, numpy_prior_mean)
-numpy_prior_cov = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Wollongong-2017/prior_cov_matrix_Wollongong2017.npy")
+numpy_prior_cov = np.load("Wollongong-2017/prior_cov_matrix_Wollongong2017.npy")
 prior_cov_matrix = convert(Array{Float64}, numpy_prior_cov)
 
 #Load weighting function
@@ -80,7 +80,7 @@ savefig(gradient_plot, joinpath(save_dir, "Wollongong2017-Gradient-vs-Iterations
 log_post_map = calc_log_posterior(true_map,sample_Y, prior_cov_matrix,error_cov_matrix,prior_mean, apply_forward_model)
 log_post_estimate = calc_log_posterior(map_estimate, sample_Y, prior_cov_matrix, error_cov_matrix, prior_mean, apply_forward_model)
 println("norm of difference with map ", norm(map_estimate .- true_map))
-println("difference in log posterior of map vs. estimate ", log_post_map - log_post_map_estimate)
+println("difference in log posterior of map vs. estimate ", log_post_map - log_post_estimate)
 
 
 
