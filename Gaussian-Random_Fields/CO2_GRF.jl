@@ -6,7 +6,7 @@ using Serialization
 using GaussianRandomFields
 using Plots
 using SpecialFunctions
-using Printf
+using HDF5
 
 plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots/CO2_GRF"
 sample_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Gaussian-Random_Fields"
@@ -111,7 +111,7 @@ end
 grf = MvNormal(mean, K)
 sample_vec = rand(grf)
 
-#Construct tensor from sample
+#Construct tensor from sample & save it
 n = length(x_pts)
 m = length(y_pts)
 k = length(z_pts)
@@ -127,9 +127,23 @@ for x in 1:n
     end
 end
 
+h5write(joinpath(sample_dir,"Lamont2015_CO2_GRF.h5"), "CO2tensor", sample_tensor)
+
+#Generate plots from tensor
 for level in 1:k
-    level_plt = heatmap(sample_tensor[:,:,level], clims=(275,525), title="Lamont 2015 GRF Sounding Level $(level)")
+    level_plt = heatmap(sample_tensor[:,:,level], clims=(275,525), title="Lamont 2015 GRF Sounding Level $(level)", xlabel="X", ylabel="Y")
     display(level_plt)
     savefig(level_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Level$(level)"))
+end
 
+for x in 1:n
+    x_plt = heatmap(sample_tensor[x,:,:], clims=(275,525), title="Lamont 2015 GRF Sounding X = $(x)", xlabel="Level", ylabel="Y")
+    display(x_plt)
+    savefig(x_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_X$(x)"))
+end
+
+for y in 1:m
+    y_plt = heatmap(sample_tensor[:,y,:], clims=(275,525), title="Lamont 2015 GRF Sounding Y = $(y)", xlabel="Level", ylabel="Y")
+    display(y_plt)
+    savefig(y_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Y$(y)"))
 end
