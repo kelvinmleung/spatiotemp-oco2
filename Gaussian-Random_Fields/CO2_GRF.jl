@@ -28,20 +28,20 @@ Wollongong2017_true_xCO2 = convert(Array{Float64}, numpy_true_x)[1:20]
 #Cov matrix
 numpy_C = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/prior_cov_matrix_2015-10_lamont.npy")
 C = convert(Array{Float64}, numpy_C)[1:20, 1:20]
+rounded_C = round.(C,digits=3)
 
 
 #Constants
-cov_matrix  = zeros(1280,1280)
 diffusion_coef = 16.0 / (10^6)  # km^2 / s^-1
 t = 1  # interval between soundings in seconds
 lambda = sqrt(diffusion_coef * t)  # km
 nu = 2.0
-x_pts = collect(range(1.3,step=1.3, length=8))
+x_pts = range(0.65,step=1.3, length=8)
+y_pts = range(1.15, step=2.3, length=8)
+z_pts = 1:20
 
 
 function matern_kernel(p1,p2,lambda, nu; sigma=1.0)
-    println("p1 $(p1)")
-    println("p2 $(p2)")
     d = abs(p1-p2)
     if iszero(d)
         return 1.0
@@ -49,18 +49,47 @@ function matern_kernel(p1,p2,lambda, nu; sigma=1.0)
     scale = sigma^2 * 2^(1 - nu) / gamma(nu)
     factor = (sqrt(2 * nu) * d / lambda)
     result = scale * factor^nu * besselk(nu, factor)
-    @printf("x1: %.4f, x2: %.4f, d: %.4f, factor: %.4f, besselk: %.4e, result: %.4e\n", p1, p2, d, factor, besselk(nu, factor), result)
+    # @printf("x1: %.4f, x2: %.4f, d: %.4f, factor: %.4f, besselk: %.4e, result: %.4e\n", p1, p2, d, factor, besselk(nu, factor), result)
     return result
 end
 
-#fill cov matrix with matern covariance for x and y
-for i in eachindex(x_pts)
-    for j in eachindex(x_pts)
-        x1 = x_pts[i]
-        x2 = x_pts[j]
-        cov = matern_kernel(x1, x2, lambda, nu)
-        cov_matrix[i, j] = cov
-    end
+function cov_matrix_entry(z1,z2,C)
+    @assert C == C' "C is not symmetric"
+    i = Int(z1)
+    j = Int(z2)
+    return C[i,j]
 end
 
-cov_matrix[1:8,1:8]   
+
+# Construct individual covariance matrices
+function construct_cov_matrix(x_pts, y_pts, z_pts, lambda, nu, C)
+
+    n = length(x_pts)
+    m = length(y_pts)
+    k = length(z_pts)
+
+    Kx = [matern_kernel(x_pts[i],x_pts[j], lambda, nu) for i in 1:n, j in 1:n]
+    Ky = [matern_kernel(y_pts[i],y_pts[j], lambda, nu) for i in 1:m, j in 1:m]
+    Kz = [cov_matrix_entry(z_pts[i], z_pts[j], C) for i in 1:k, j in 1:k]
+
+    # Ensure Kx, Ky, and Kz are positive definite
+    Kx += 1e-10 * I(n)
+    eigvals_Kx = eigen(Kx).values
+    @assert all(eigvals_Kx .> 0) "Kx is not positive definite"
+    Ky += 1e-10 * I(m)
+    eigvals_Ky = eigen(Ky).values
+    @assert all(eigvals_Ky .> 0) "Ky is not positive definite"
+    Kz += 1e-10 * I(k)
+    eigvals_Kz = eigen(Kz).values
+    @assert all(eigvals_Kz .> 0) "Kx is not positive definite"
+
+    # Combine covariance matrices using Kronecker product
+    K = kron(kron(Kx, Ky), Kz)
+
+    return K
+end
+
+
+K = construct_cov_matrix(x_pts, y_pts, z_pts, lambda, nu, rounded_C)
+eigvals_K = eigen(K).values 
+@assert all(eigvals_K .> 0) "K is not positive definite"
