@@ -8,7 +8,7 @@ using Plots
 using SpecialFunctions
 using Printf
 
-plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots"
+plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots/CO2_GRF"
 sample_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Gaussian-Random_Fields"
 
 
@@ -93,3 +93,43 @@ end
 K = construct_cov_matrix(x_pts, y_pts, z_pts, lambda, nu, rounded_C)
 eigvals_K = eigen(K).values 
 @assert all(eigvals_K .> 0) "K is not positive definite"
+
+#Make mean vector
+mean = zeros(1280)
+true_x = Lamont2015_true_xCO2
+
+for i in 1:1280
+    idx = i % 20
+    if iszero(idx)
+        mean[i] = true_x[20]
+    else
+        mean[i] = true_x[idx]
+    end
+end
+
+
+grf = MvNormal(mean, K)
+sample_vec = rand(grf)
+
+#Construct tensor from sample
+n = length(x_pts)
+m = length(y_pts)
+k = length(z_pts)
+sample_tensor = zeros(n,m,k)
+
+i = 1
+for x in 1:n
+    for y in 1:m
+        for z in 1:k
+            sample_tensor[x,y,z] = sample_vec[i]
+            i+=1
+        end
+    end
+end
+
+for level in 1:k
+    level_plt = heatmap(sample_tensor[:,:,level], clims=(275,525), title="Lamont 2015 GRF Sounding Level $(level)")
+    display(level_plt)
+    savefig(level_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Level$(level)"))
+
+end
