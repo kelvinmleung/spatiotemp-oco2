@@ -96,7 +96,7 @@ eigvals_K = eigen(K).values
 
 #Make mean vector
 mean = zeros(1280)
-true_x = Lamont2015_true_xCO2
+true_x = Wollongong2017_true_xCO2
 
 for i in 1:1280
     idx = i % 20
@@ -127,23 +127,23 @@ for x in 1:n
     end
 end
 
-h5write(joinpath(sample_dir,"Lamont2015_CO2_GRF.h5"), "CO2tensor", sample_tensor)
+h5write(joinpath(sample_dir,"Wollongong2017_CO2_GRF.h5"), "CO2tensor", sample_tensor)
 
 #Generate plots from tensor
 for level in 1:k
-    level_plt = heatmap(sample_tensor[:,:,level], clims=(275,525), title="Lamont 2015 GRF Sounding Level $(level)", xlabel="X", ylabel="Y")
+    level_plt = heatmap(sample_tensor[:,:,level], clims=(275,525), title="Wollongong 2017 GRF Sounding Level $(level)", xlabel="X", ylabel="Y")
     display(level_plt)
-    savefig(level_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Level$(level)"))
+    savefig(level_plt, joinpath(plots_dir, "Wollongong2017_CO2_GRF_Level$(level)"))
 end
 
 for x in 1:n
-    x_plt = heatmap(sample_tensor[x,:,:], clims=(275,525), title="Lamont 2015 GRF Sounding X = $(x)", xlabel="Level", ylabel="Y")
+    x_plt = heatmap(sample_tensor[x,:,:], clims=(275,525), title="Wollongong 2017 GRF Sounding X = $(x)", xlabel="Level", ylabel="Y")
     display(x_plt)
-    savefig(x_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_X$(x)"))
+    savefig(x_plt, joinpath(plots_dir, "Wollongong2017_CO2_GRF_X$(x)"))
 end
 
 for y in 1:m
-    y_plt = heatmap(sample_tensor[:,y,:], clims=(275,525), title="Lamont 2015 GRF Sounding Y = $(y)", xlabel="Level", ylabel="Y")
+    y_plt = heatmap(sample_tensor[:,y,:], clims=(275,525), title="Wollongong 2017 GRF Sounding Y = $(y)", xlabel="Level", ylabel="X")
     display(y_plt)
-    savefig(y_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Y$(y)"))
+    savefig(y_plt, joinpath(plots_dir, "Wollongong2017_CO2_GRF_Y$(y)"))
 end
