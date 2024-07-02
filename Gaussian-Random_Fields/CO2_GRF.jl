@@ -8,7 +8,7 @@ using Plots
 using SpecialFunctions
 using HDF5
 
-plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots/CO2_GRF"
+plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots/GRF"
 sample_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Gaussian-Random_Fields"
 
 
@@ -131,19 +131,19 @@ h5write(joinpath(sample_dir,"Wollongong2017_CO2_GRF.h5"), "CO2tensor", sample_te
 
 #Generate plots from tensor
 for level in 1:k
-    level_plt = heatmap(sample_tensor[:,:,level], clims=(275,525), title="Wollongong 2017 GRF Sounding Level $(level)", xlabel="X", ylabel="Y")
+    level_plt = heatmap(sample_tensor[:,:,level], clims=(275,525), title="Wollongong 2017 GRF Sounding Level $(level)", xlabel="X", ylabel="Y", colorbar_title="CO2 Concentration (ppm)")
     display(level_plt)
     savefig(level_plt, joinpath(plots_dir, "Wollongong2017_CO2_GRF_Level$(level)"))
 end
 
 for x in 1:n
-    x_plt = heatmap(sample_tensor[x,:,:], clims=(275,525), title="Wollongong 2017 GRF Sounding X = $(x)", xlabel="Level", ylabel="Y")
+    x_plt = heatmap(sample_tensor[x,:,:], clims=(275,525), title="Wollongong 2017 GRF Sounding X = $(x)", xlabel="Level", ylabel="Y", colorbar_title="CO2 Concentration (ppm)")
     display(x_plt)
     savefig(x_plt, joinpath(plots_dir, "Wollongong2017_CO2_GRF_X$(x)"))
 end
 
 for y in 1:m
-    y_plt = heatmap(sample_tensor[:,y,:], clims=(275,525), title="Wollongong 2017 GRF Sounding Y = $(y)", xlabel="Level", ylabel="X")
+    y_plt = heatmap(sample_tensor[:,y,:], clims=(275,525), title="Wollongong 2017 GRF Sounding Y = $(y)", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)")
     display(y_plt)
     savefig(y_plt, joinpath(plots_dir, "Wollongong2017_CO2_GRF_Y$(y)"))
 end
