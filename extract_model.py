@@ -15,14 +15,16 @@ with h5py.File(filepath, 'r') as f:
     wavelength = f['wavelength'][:]
 
     # Print the dimensions of each key
-    for key in f.keys():
-        dataset = f[key]
-        print(f"Key: {key}, Shape: {dataset.shape}")
+    # for key in f.keys():
+    #     dataset = f[key]
+    #     print(f"Key: {key}, Shape: {dataset.shape}")
+
+    print(f['state_vector_names'][27:])
 
 # np.save("wavelengths.npy", wavelength)
 # np.save("Wollongong-2017/linear_model_Wollongong2017.npy", Fmatrix)
 # np.save("Wollongong-2017/weighting_func_Wollongong2017.npy", weighting_func)
 # np.save('Wollongong-2017/true_state_vector_Wollongong2017.npy', true_x)
 # np.save('Wollongong-2017/prior_mean_Wollongong2017.npy', prior_mean_x)
-np.save('Wollongong-2017/prior_cov_matrix_Wollongong2017.npy', prior_cov_x)
+# np.save('Wollongong-2017/prior_cov_matrix_Wollongong2017.npy', prior_cov_x)
 # np.save('Wollongong-2017/error_variance_Wollongong2017.npy', error_variance)
