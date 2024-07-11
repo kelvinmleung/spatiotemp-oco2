@@ -4,7 +4,7 @@ import h5py
 
 print("Current working directory:", os.getcwd())
 
-filepath = '/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Wollongong-2017/example_oco2_linear_model_201706_wollongong.h5'
+filepath = '/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/example_oco2_linear_model_201510_lamont.h5'
 with h5py.File(filepath, 'r') as f:
     Fmatrix = f['model_matrix'][:,:]
     true_x = f['state_true_mean_vector'][:]
