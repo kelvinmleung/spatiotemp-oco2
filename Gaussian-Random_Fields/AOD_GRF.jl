@@ -24,4 +24,5 @@ Wollongong2016_AODs = Wollongong2016_x[aod_indices]
 
 #Wollongong 2017
 numpy_true_x = np.load("Wollongong-2017/true_state_vector_Wollongong2017.npy")
-Wollongong2017_true_SP = convert(Array{Float64}, numpy_true_x)[27,30,33,36]
+Wollongong2017_x = convert(Array{Float64}, numpy_true_x)
+Wollongong2017_AODs = Wollongong2017_x[aod_indices]

@@ -183,8 +183,8 @@ for loc in 1:3
     # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_covGRF.h5"), "CO2tensor-LocCov", sample_loc_tensor)
     # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_covGRF.h5"), "CO2tensor-DiffCov", sample_diff_tensor)
 
-    # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-LocCor", sample_loc_tensor)
-    # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-DiffCor", sample_diff_tensor)
+    h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-LocCor", sample_loc_tensor)
+    h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-DiffCor", sample_diff_tensor)
 
     difference_tensor = sample_loc_tensor - sample_diff_tensor
 
