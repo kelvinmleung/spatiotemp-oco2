@@ -6,6 +6,7 @@ using Serialization
 using GaussianRandomFields
 using Plots
 pyplot()
+using HDF5
 
 
 plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots/SP_GRF"
