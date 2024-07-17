@@ -1,0 +1,4 @@
+https://docserver.gesdisc.eosdis.nasa.gov/public/project/OCO/OCO2_OCO3_B10_DUG.pdf
+https://docserver.gesdisc.eosdis.nasa.gov/public/project/OCO/OCO_L2_ATBD.pdf
+https://docserver.gesdisc.eosdis.nasa.gov/public/project/OCO/README.OCO2.pdf
+https://data.gesdisc.earthdata.nasa.gov/data/OCO2_DATA/OCO2_L2_Standard.10r/2015/281/oco2_L2StdND_06750a_151008_B10206r_200719003702.h5

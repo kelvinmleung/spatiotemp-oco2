@@ -1,1 +1,6 @@
+#Ignore local formatting settings
 .DS_Store
+
+#Ignore files that are too big 
+/OCO2_Data-Lamont2015/oco2_L2StdND_06750a_151008_B10206r_200719003702.h5
+
