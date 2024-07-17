@@ -10,12 +10,12 @@ using HDF5
 using Printf
 
 plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots/CO2_GRF"
-sample_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Gaussian-Random_Fields"
+sample_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GRF"
 
 
 #Import known values
 #Lamont 2015
-numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/true_state_vector_2015-10_lamont.npy")
+numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/true_state_vector_2015-10_lamont.npy")
 Lamont2015_true_xCO2 = convert(Array{Float64}, numpy_true_x)[1:20]
 Lamont_lambda = mean([18.5, 15.5, 10, 27.5, 100,
                 100,100,100,100,100,
@@ -23,7 +23,7 @@ Lamont_lambda = mean([18.5, 15.5, 10, 27.5, 100,
                 2.5, 40, 100,100,100])
 
 # Wollongong 2016
-numpy_true_x = np.load("Wollongong-2016/true_state_vector_Wollongong2016.npy")
+numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2016/true_state_vector_Wollongong2016.npy")
 Wollongong2016_true_xCO2 = convert(Array{Float64}, numpy_true_x)[1:20]
 Wollongong2016_lambda = mean([68.75, 31.25, 35, 18.5, 57.5,
                 27.5,27.5,31.25,36,35,
@@ -31,7 +31,7 @@ Wollongong2016_lambda = mean([68.75, 31.25, 35, 18.5, 57.5,
                 22, 9.5, 100,72,53])
 
 #Wollongong 2017
-numpy_true_x = np.load("Wollongong-2017/true_state_vector_Wollongong2017.npy")
+numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2017/true_state_vector_Wollongong2017.npy")
 Wollongong2017_true_xCO2 = convert(Array{Float64}, numpy_true_x)[1:20]
 Wollongong2017_lambda = mean([40.5, 20, 30, 42.5, 100,
                 79,81, 68.75,59.5,37.5,
@@ -45,7 +45,7 @@ lambdas = [Lamont_lambda, Wollongong2016_lambda, Wollongong2017_lambda]
 
 
 #Cov and Correlation matrix
-numpy_C = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/prior_cov_matrix_2015-10_lamont.npy")
+numpy_C = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/prior_cov_matrix_2015-10_lamont.npy")
 C = convert(Array{Float64}, numpy_C)[1:20, 1:20]
 symmetric_C = tril(C) + tril(C,-1)'
 variances = diag(symmetric_C)
@@ -183,18 +183,18 @@ for loc in 1:3
     # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_covGRF.h5"), "CO2tensor-LocCov", sample_loc_tensor)
     # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_covGRF.h5"), "CO2tensor-DiffCov", sample_diff_tensor)
 
-    h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-LocCor", sample_loc_tensor)
-    h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-DiffCor", sample_diff_tensor)
+    # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-LocCor", sample_loc_tensor)
+    # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-DiffCor", sample_diff_tensor)
 
     difference_tensor = sample_loc_tensor - sample_diff_tensor
 
     #Generate plots from tensor
     for level in 1:k
-        loc_level_plt = heatmap(sample_loc_tensor[:,:,level],clims=(375,425), title="$(labels[loc]) Level $(level) Mean Range Normalized GRF Sample", xlabel="X", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
+        loc_level_plt = heatmap(sample_loc_tensor[:,:,level],clims=(325,475), title="$(labels[loc]) Level $(level) Mean Range Normalized GRF Sample", xlabel="X", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
         display(loc_level_plt)
         savefig(loc_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_LocCor.png"))
 
-        diffusion_level_plt = heatmap(sample_diff_tensor[:,:,level],clims=(375,425), title="$(labels[loc]) Level $(level) Diffusion Range Normalized GRF Sample", xlabel="X", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
+        diffusion_level_plt = heatmap(sample_diff_tensor[:,:,level],clims=(325,475), title="$(labels[loc]) Level $(level) Diffusion Range Normalized GRF Sample", xlabel="X", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
         display(diffusion_level_plt)
         savefig(diffusion_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_DiffCor.png"))
 
@@ -204,11 +204,11 @@ for loc in 1:3
     end
 
     #Plot X=1 slice for location, diffusion and difference
-    loc_x_plt = heatmap(sample_loc_tensor[1,:,:], clims=(375,425), title="$(labels[loc]) Mean Range Normalized GRF Sample X = 1", xlabel="Level", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
+    loc_x_plt = heatmap(sample_loc_tensor[1,:,:], clims=(325,475), title="$(labels[loc]) Mean Range Normalized GRF Sample X = 1", xlabel="Level", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
     display(loc_x_plt)
     savefig(loc_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_LocCor.png"))
 
-    diffusion_x_plt = heatmap(sample_diff_tensor[1,:,:], clims=(375,425), title="$(labels[loc]) Diffusion Range Normalized GRF Sample X = 1", xlabel="Level", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
+    diffusion_x_plt = heatmap(sample_diff_tensor[1,:,:], clims=(325,475), title="$(labels[loc]) Diffusion Range Normalized GRF Sample X = 1", xlabel="Level", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400), titlefontsize=12)
     display(diffusion_x_plt)
     savefig(diffusion_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DiffCor.png"))
     
@@ -218,11 +218,11 @@ for loc in 1:3
 
 
 #Plot Y=1 slice for location, diffusion and difference
-    loc_y_plt = heatmap(sample_loc_tensor[:,1,:], clims=(375,425), title="$(labels[loc]) Mean Range Normalized GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)", size=(700,400),titlefontsize=12)
+    loc_y_plt = heatmap(sample_loc_tensor[:,1,:], clims=(325,475), title="$(labels[loc]) Mean Range Normalized GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)", size=(700,400),titlefontsize=12)
     display(loc_y_plt)
     savefig(loc_y_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Y1_LocCor.png"))
 
-    diffusion_y_plt = heatmap(sample_diff_tensor[:,1,:], clims=(375,425), title="$(labels[loc]) Diffusion Range GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)",size=(700,400),titlefontsize=12)
+    diffusion_y_plt = heatmap(sample_diff_tensor[:,1,:], clims=(325,475), title="$(labels[loc]) Diffusion Range GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)",size=(700,400),titlefontsize=12)
     display(diffusion_y_plt)
     savefig(diffusion_y_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Y1_DiffCor.png"))
     
