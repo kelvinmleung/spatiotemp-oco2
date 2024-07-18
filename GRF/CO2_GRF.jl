@@ -18,14 +18,19 @@ sample_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GRF"
 #Lamont 2015
 numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/true_state_vector_2015-10_lamont.npy")
 Lamont2015_true_xCO2 = convert(Array{Float64}, numpy_true_x)[1:20]
-Lamont_lambda = mean([18.5, 15.5, 10, 27.5, 100,
-                100,100,100,100,100,
-                100,100,100,100, 2.5,
-                2.5, 40, 100,100,100])
+Lamont2015_lambdas = [18.5, 15.5, 10, 27.5, 100,
+    100,100,100,100,100,
+    100,100,100,100, 2.5,
+    2.5, 40, 100,100,100]
+Lamont_lambda = mean(Lamont2015_lambdas)
 
 # Wollongong 2016
 numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2016/true_state_vector_Wollongong2016.npy")
 Wollongong2016_true_xCO2 = convert(Array{Float64}, numpy_true_x)[1:20]
+Wollongong2016_lambdas = [68.75, 31.25, 35, 18.5, 57.5,
+        27.5,27.5,31.25,36,35,
+        37,41,50,75, 87,
+        22, 9.5, 100,72,53]
 Wollongong2016_lambda = mean([68.75, 31.25, 35, 18.5, 57.5,
                 27.5,27.5,31.25,36,35,
                 37,41,50,75, 87,
@@ -34,6 +39,10 @@ Wollongong2016_lambda = mean([68.75, 31.25, 35, 18.5, 57.5,
 #Wollongong 2017
 numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2017/true_state_vector_Wollongong2017.npy")
 Wollongong2017_true_xCO2 = convert(Array{Float64}, numpy_true_x)[1:20]
+Wollongong2017_lambdas = [40.5, 20, 30, 42.5, 100,
+                79,81, 68.75,59.5,37.5,
+                28.5,20,12.5,17.5, 38,
+                7.5, 12, 100,100,100]
 Wollongong2017_lambda = mean([40.5, 20, 30, 42.5, 100,
                 79,81, 68.75,59.5,37.5,
                 28.5,20,12.5,17.5, 38,
@@ -58,7 +67,7 @@ correlation_matrix = tril(correlation_matrix) + tril(correlation_matrix,-1)'
 #Constants
 diffusion_coef = 16.0 / (10^6)  
 diffusion_lambda = sqrt(diffusion_coef)  # km
-fixed_nu = 2.0
+fixed_nu = 0.5
 x_pts = range(0.65,step=1.3, length=8)
 y_pts = range(1.15, step=2.3, length=8)
 z_pts = 1:20
@@ -105,17 +114,22 @@ function construct_cov_matrix(x_pts, y_pts, z_pts, lambdas, nu, C)
                                 col = 1
                                 row +=1
                             end 
-                        
-                            lambda = (lambdas[z1] + lambdas[z2])/2
                             
-                            cov_x = matern_kernel(x_pts[x1], x_pts[x2], lambda, nu)
-                            cov_y = matern_kernel(y_pts[y1], y_pts[y2], lambda, nu)
+                            lambda_k = lambdas[z1]
+                            lambda_l = lambdas[z2]
+                            lambda_kl = (lambdas[z1] + lambdas[z2])/2
+                            
+                            cov_x = matern_kernel(x_pts[x1], x_pts[x2], lambda_kl, nu)
+                            cov_y = matern_kernel(y_pts[y1], y_pts[y2], lambda_kl, nu)
                             cov_z = cov_matrix_entry(z_pts[z1], z_pts[z2], C)
-                            prod = cov_x*cov_y*cov_z
+                            factor = sqrt(lambda_k)*sqrt(lambda_l)/lambda_kl
+                            prod = cov_x*cov_y*cov_z*factor
                             K[row,col] = prod
                             # if row == 21
                             #     println("X:$(x1), $(x2), Y: $(y1), $(y2), Z: $(z1), $(z2)")
-                            #     println("lambda $lambda")
+                            #     println("lambda k = $lambda_k")
+                            #     println("lambda l = $lambda_l")
+                            #     println("factor = $factor")
                             #     println("cov_x: $(cov_x), cov_y: $(cov_y), cov_z: $(cov_z), prod: $(prod)")
                             # end
 
@@ -127,12 +141,16 @@ function construct_cov_matrix(x_pts, y_pts, z_pts, lambdas, nu, C)
         end
     end
     K = tril(K) + tril(K,-1)'
-    K = K + 1e-10 * I
+    K = K + 1e-9 .* I
     return K
  
 end
 
 
+##Attempt to construct matrix with new formula
+test_cov = construct_cov_matrix(x_pts,y_pts,z_pts, Lamont2015_lambdas, fixed_nu, correlation_matrix)
+cond(test_cov)
+eig_K = eigvals(test_cov)
 
 
 
@@ -316,7 +334,7 @@ for loc in 1:3
     colorbar_title="CO2 Concentration (ppm)", 
     size=(700,500))
     display(difference_x_cor_plt)
-    savefig(difference_x_cor_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCor.png"))
+    savefig(difference_x_cor_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCorgt.png"))
 
 # #Plot Y=1 slice for location, diffusion and difference
 #     loc_y_plt = heatmap(sample_loc_tensor[:,1,:], clims=(325,475), title="$(labels[loc]) Mean Range Normalized GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)", size=(700,400),titlefontsize=12)
