@@ -55,19 +55,34 @@ lambdas = [Lamont_lambda, Wollongong2016_lambda, Wollongong2017_lambda]
 
 
 #Cov and Correlation matrix
-numpy_C = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/prior_cov_matrix_2015-10_lamont.npy")
-C = convert(Array{Float64}, numpy_C)[1:20, 1:20]
-symmetric_C = tril(C) + tril(C,-1)'
-variances = diag(symmetric_C)
+numpy_cov = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/prior_cov_matrix_2015-10_lamont.npy")
+prior_cov = convert(Array{Float64}, numpy_C)[1:20, 1:20]
+prior_cov = tril(prior_cov) + tril(prior_cov)'
+variances = diag(prior_cov)
 D = sqrt.(diagm(variances))
-correlation_matrix = inv(D)* symmetric_C * inv(D)
-correlation_matrix = tril(correlation_matrix) + tril(correlation_matrix,-1)'
+prior_cor = inv(D)* prior_cov * inv(D)
+prior_cor= tril(prior_cor) + tril(prior_cor,-1)'
+
+#Sample covariance and correlation matrix 
+sample_cov = OCO2file = read(h5open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/OCO2_Data-Lamont2015/SampleCov.h5", "r")["sample_cov_matrix"])
+sample_variances = diag(sample_cov)
+sample_D = sqrt.(diagm(sample_variances))
+sample_cor = inv(sample_D) * sample_cov * inv(sample_D)
+sample_cor = tril(sample_cor) + tril(sample_cor, -1)'
+
+#Plot difference in covariance matrices
+difference_Cs = prior_cov - sample_cov
+cov_plt = heatmap(difference_Cs, 
+            title="Lamont2015 Difference Between Prior and Sample Covariance Matrices",  
+            titlefontsize=10)
+savefig(cov_plt, joinpath("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots", "Lamont2015_Sample-Prior_Cov_Difference.png"))
+
 
 
 #Constants
 diffusion_coef = 16.0 / (10^6)  
 diffusion_lambda = sqrt(diffusion_coef)  # km
-fixed_nu = 0.5
+fixed_nu = 1.0
 x_pts = range(0.65,step=1.3, length=8)
 y_pts = range(1.15, step=2.3, length=8)
 z_pts = 1:20
@@ -148,7 +163,7 @@ end
 
 
 ##Attempt to construct matrix with new formula
-test_cov = construct_cov_matrix(x_pts,y_pts,z_pts, Lamont2015_lambdas, fixed_nu, correlation_matrix)
+test_cov = construct_cov_matrix(x_pts,y_pts,z_pts, fill(diffusion_lambda, 20), fixed_nu, sample_cov)
 cond(test_cov)
 eig_K = eigvals(test_cov)
 
@@ -172,11 +187,11 @@ for loc in 1:3
     #Make covariance matrix 
     mean_lambda_vec = fill(lambdas[loc], 20)
     diffusion_lambda_vec = fill(diffusion_lambda, 20)
-    loc_cov_K = construct_cov_matrix(x_pts,y_pts,z_pts,mean_lambda_vec, fixed_nu, symmetric_C)
-    loc_cor_K = construct_cov_matrix(x_pts,y_pts,z_pts,mean_lambda_vec, fixed_nu, correlation_matrix)
+    loc_cov_K = construct_cov_matrix(x_pts,y_pts,z_pts,mean_lambda_vec, fixed_nu, sample_cov)
+    loc_cor_K = construct_cov_matrix(x_pts,y_pts,z_pts,mean_lambda_vec, fixed_nu, sample_cor)
     
-    diffusion_cov_K = construct_cov_matrix(x_pts,y_pts,z_pts,diffusion_lambda_vec, fixed_nu, symmetric_C)
-    diffusion_cor_K = construct_cov_matrix(x_pts, y_pts, z_pts, diffusion_lambda_vec, fixed_nu, correlation_matrix)
+    diffusion_cov_K = construct_cov_matrix(x_pts,y_pts,z_pts,diffusion_lambda_vec, fixed_nu, sample_cov)
+    diffusion_cor_K = construct_cov_matrix(x_pts, y_pts, z_pts, diffusion_lambda_vec, fixed_nu, sample_cor)
 
     loc_cov_grf = MvNormal(mean, loc_cov_K)
     loc_cov_sample_vec = rand(loc_cov_grf)
@@ -218,55 +233,52 @@ for loc in 1:3
     # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-LocCor", sample_loc_tensor)
     # h5write(joinpath(sample_dir,"$(labels[loc])_CO2_corGRF.h5"), "CO2tensor-DiffCor", sample_diff_tensor)
 
-    difference_cov_tensor = sample_loc_cov_tensor - sample_diff_cov_tensor
-    difference_cor_tensor = sample_loc_cor_tensor - sample_diff_cor_tensor
-
     #Generate plots from tensor
     for level in 1:k
         loc_cov_level_plt = heatmap(sample_loc_cov_tensor[:,:,level],
             clims=(325,475), 
-            title="$(labels[loc]) Level $(level) Location λ Covariance GRF Sample", 
+            title="$(labels[loc]) Level $(level) Location λ Sample Covariance GRF", 
             xlabel="X", 
             ylabel="Y",
             colorbar_title="CO2 Concentration (ppm)", 
             size=(700,500), 
             titlefontsize=12)
         display(loc_cov_level_plt)
-        savefig(loc_cov_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_LocCov.png"))
+        savefig(loc_cov_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_LocSampleCov.png"))
 
         loc_cor_level_plt = heatmap(sample_loc_cor_tensor[:,:,level],
             clims=(325,475), 
-            title="$(labels[loc]) Level $(level) Location λ Correlation GRF Sample", 
+            title="$(labels[loc]) Level $(level) Location λ Sample Correlation GRF", 
             xlabel="X", 
             ylabel="Y",
             colorbar_title="CO2 Concentration (ppm)", 
             size=(700,500), 
             titlefontsize=12)
         display(loc_cor_level_plt)
-        savefig(loc_cor_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_LocCor.png"))
+        savefig(loc_cor_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_LocSampleCor.png"))
 
 
         diffusion_cov_level_plt = heatmap(sample_diff_cov_tensor[:,:,level],
             clims=(325,475), 
-            title="$(labels[loc]) Level $(level) Diffusion λ Covariance GRF Sample", 
+            title="$(labels[loc]) Level $(level) Diffusion λ Sample Covariance GRF", 
             xlabel="X", 
             ylabel="Y", 
             colorbar_title="CO2 Concentration (ppm)", 
             size=(700,500), 
             titlefontsize=12)
         display(diffusion_cov_level_plt)
-        savefig(diffusion_cov_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_DiffCov.png"))
+        savefig(diffusion_cov_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_DiffSampleCov.png"))
 
         diffusion_cor_level_plt = heatmap(sample_diff_cor_tensor[:,:,level],
             clims=(325,475), 
-            title="$(labels[loc]) Level $(level) Diffusion λ Correlation GRF Sample", 
+            title="$(labels[loc]) Level $(level) Diffusion λ Sample Correlation GRF", 
             xlabel="X", 
             ylabel="Y", 
             colorbar_title="CO2 Concentration (ppm)", 
             size=(700,500), 
             titlefontsize=12)
         display(diffusion_cor_level_plt)
-        savefig(diffusion_cor_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_DiffCor.png"))
+        savefig(diffusion_cor_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_DiffSampleCor.png"))
 
 
         # difference_level_plt = heatmap(difference_tensor[:,:,level], title="$(labels[loc]) Level $(level) Difference b/w Mean Location and Diffusion Range GRF Sample", xlabel="X", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400),titlefontsize=10)
@@ -277,64 +289,64 @@ for loc in 1:3
     #Plot X=1 slice for location, diffusion and difference
     loc_cov_x_plt = heatmap(sample_loc_cov_tensor[1,:,:], 
         clims=(325,475), 
-        title="$(labels[loc]) Location λ Covariance GRF Sample X = 1", 
+        title="$(labels[loc]) Location λ Sample Covariance GRF X = 1", 
         xlabel="Level", 
         ylabel="Y", 
         colorbar_title="CO2 Concentration (ppm)", 
         size=(700,500), 
         titlefontsize=12)
     display(loc_cov_x_plt)
-    savefig(loc_cov_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_LocCov.png"))
+    savefig(loc_cov_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_LocSampleCov.png"))
 
     loc_cor_x_plt = heatmap(sample_loc_cor_tensor[1,:,:], 
         clims=(325,475), 
-        title="$(labels[loc]) Location λ Correlation GRF Sample X = 1", 
+        title="$(labels[loc]) Location λ Sample Correlation GRF X = 1", 
         xlabel="Level", 
         ylabel="Y", 
         colorbar_title="CO2 Concentration (ppm)", 
         size=(700,500))
     display(loc_cor_x_plt)
-    savefig(loc_cor_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_LocCor.png"))
+    savefig(loc_cor_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_LocSampleCor.png"))
 
     diffusion_cov_x_plt = heatmap(sample_diff_cov_tensor[1,:,:], 
         clims=(325,475), 
-        title="$(labels[loc]) Diffusion λ Covariance GRF Sample X = 1", 
+        title="$(labels[loc]) Diffusion λ Covariance Sample GRF X = 1", 
         xlabel="Level", 
         ylabel="Y", 
         colorbar_title="CO2 Concentration (ppm)", 
         size=(700,500))
     display(diffusion_cov_x_plt)
-    savefig(diffusion_cov_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DiffCov.png"))
+    savefig(diffusion_cov_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DiffSampleCov.png"))
 
     diffusion_cor_x_plt = heatmap(sample_diff_cor_tensor[1,:,:], 
         clims=(325,475), 
-        title="$(labels[loc]) Diffusion λ Correlation GRF Sample X = 1", 
+        title="$(labels[loc]) Diffusion λ Correlation Sample GRF X = 1", 
         xlabel="Level", 
         ylabel="Y", 
         colorbar_title="CO2 Concentration (ppm)", 
         size=(700,500))
     display(diffusion_cor_x_plt)
-    savefig(diffusion_cor_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DiffCor.png"))
+    savefig(diffusion_cor_x_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DiffSampleCor.png"))
 
     
     
-    difference_x_cov_plt = heatmap(difference_cov_tensor[1,:,:], 
-    title="$(labels[loc]) Difference b/w Location and Diffusion λ X = 1", 
-    xlabel="Level", 
-    ylabel="Y", 
-    colorbar_title="CO2 Concentration (ppm)", 
-    size=(700,500))
-    display(difference_x_cov_plt)
-    savefig(difference_x_cov_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCov.png"))
+    # difference_x_cov_plt = heatmap(difference_cov_tensor[1,:,:], 
+    # title="$(labels[loc]) Difference b/w Location and Diffusion λ X = 1", 
+    # xlabel="Level", 
+    # ylabel="Y", 
+    # colorbar_title="CO2 Concentration (ppm)", 
+    # size=(700,500))
+    # display(difference_x_cov_plt)
+    # savefig(difference_x_cov_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCov.png"))
 
-    difference_x_cor_plt = heatmap(difference_cor_tensor[1,:,:], 
-    title="$(labels[loc]) Difference b/w Location and Diffusion λ X = 1", 
-    xlabel="Level", 
-    ylabel="Y", 
-    colorbar_title="CO2 Concentration (ppm)", 
-    size=(700,500))
-    display(difference_x_cor_plt)
-    savefig(difference_x_cor_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCorgt.png"))
+    # difference_x_cor_plt = heatmap(difference_cor_tensor[1,:,:], 
+    # title="$(labels[loc]) Difference b/w Location and Diffusion λ X = 1", 
+    # xlabel="Level", 
+    # ylabel="Y", 
+    # colorbar_title="CO2 Concentration (ppm)", 
+    # size=(700,500))
+    # display(difference_x_cor_plt)
+    # savefig(difference_x_cor_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCorgt.png"))
 
 # #Plot Y=1 slice for location, diffusion and difference
 #     loc_y_plt = heatmap(sample_loc_tensor[:,1,:], clims=(325,475), title="$(labels[loc]) Mean Range Normalized GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)", size=(700,400),titlefontsize=12)
