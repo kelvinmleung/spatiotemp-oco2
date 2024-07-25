@@ -14,7 +14,7 @@ ph_indices = [29, 32, 35, 38]
 
 
 #Lamont 2015
-numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/true_state_vector_2015-10_lamont.npy")
+numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/true_state_vector_2015-10_lamont.npy")
 Lamont2015_x = convert(Array{Float64}, numpy_true_x)
 Lamont2015_phs = Lamont2015_x[ph_indices]
 Lamont2015_lambdas = [20,7.5,6,15.5]

@@ -279,11 +279,6 @@ for loc in 1:3
             titlefontsize=12)
         display(diffusion_cor_level_plt)
         savefig(diffusion_cor_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_DiffSampleCor.png"))
-
-
-        # difference_level_plt = heatmap(difference_tensor[:,:,level], title="$(labels[loc]) Level $(level) Difference b/w Mean Location and Diffusion Range GRF Sample", xlabel="X", ylabel="Y", colorbar_title="CO2 Concentration (ppm)", size=(700,400),titlefontsize=10)
-        # display(difference_level_plt)
-        # savefig(difference_level_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Level$(level)_DifferenceCor.png"))
     end
 
     #Plot X=1 slice for location, diffusion and difference
@@ -337,16 +332,8 @@ for loc in 1:3
     # colorbar_title="CO2 Concentration (ppm)", 
     # size=(700,500))
     # display(difference_x_cov_plt)
-    # savefig(difference_x_cov_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCov.png"))
-
-    # difference_x_cor_plt = heatmap(difference_cor_tensor[1,:,:], 
-    # title="$(labels[loc]) Difference b/w Location and Diffusion λ X = 1", 
-    # xlabel="Level", 
-    # ylabel="Y", 
-    # colorbar_title="CO2 Concentration (ppm)", 
-    # size=(700,500))
-    # display(difference_x_cor_plt)
-    # savefig(difference_x_cor_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCorgt.png"))
+    # savefig(difference_x_cov_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_X1_DifferenceCov.png"))/'
+    
 
 # #Plot Y=1 slice for location, diffusion and difference
 #     loc_y_plt = heatmap(sample_loc_tensor[:,1,:], clims=(325,475), title="$(labels[loc]) Mean Range Normalized GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)", size=(700,400),titlefontsize=12)
@@ -356,10 +343,21 @@ for loc in 1:3
 #     diffusion_y_plt = heatmap(sample_diff_tensor[:,1,:], clims=(325,475), title="$(labels[loc]) Diffusion Range GRF Sample Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)",size=(700,400),titlefontsize=12)
 #     display(diffusion_y_plt)
 #     savefig(diffusion_y_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Y1_DiffCor.png"))
-    
-#     difference_y_plt = heatmap(difference_tensor[:,1,:], title="$(labels[loc]) Difference b/w Mean Location and Diffusion Range Y = 1", xlabel="Level", ylabel="X", colorbar_title="CO2 Concentration (ppm)",size=(700,400),titlefontsize=10)
-#     display(difference_y_plt)
-#     savefig(difference_y_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Y1_DifferenceCor.png"))
 
 end
+
+Lamont2015_model = np.load("SampleState-Lamont2015/linear_model_2015-10_lamont.npy")
+Lamont2015_model = convert(Array{Float64}, Lamont2015_model)
+
+
+Wollongong2016_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2016/linear_model_Wollongong2016.npy")
+Wollongong2016_model = convert(Array{Float64}, Wollongong2016_model)
+
+Wollongong2017_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2017/linear_model_Wollongong2017.npy")
+Wollongong2017_model = convert(Array{Float64}, Wollongong2017_model)
+
+
+Lamont2015_model == Wollongong2016_model
+
+Wollongong2016_model == Wollongong2017_model
 
