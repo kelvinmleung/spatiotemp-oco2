@@ -64,41 +64,4 @@ display(SO_plt)
 
 
 OC_param2_mean = mean(read(OC_file["ParamTensor"])[:,:,2])
-OC_cov_func = CovarianceFunction(2, Matern(Lamont2015_Lambdas[2], 0.5, σ = 0.05)) # length scale l, smoothness 1
-OC_grf = GaussianRandomField(OC_cov_func, Spectral(), x_pts, y_pts)
-OC_grf_sample = GaussianRandomFields.sample(OC_grf)
-OC_sample = OC_grf_sample .+ OC_param2_mean
-# h5write(joinpath(sample_dir,"Lamont2015_OC_GRF.h5"), "Param2", OC_sample)
-OC_plt = heatmap(OC_sample, 
-    title="Lamont2015 OC Aerosol Param 2 GRF Sample", 
-    size=(700,500),
-    clims=(0.8,0.93))
-display(OC_plt)
-# savefig(OC_plt, joinpath(plots_dir, "Lamont2015_OC_Param2_GRF.png"))
-
-
-Ice_param2_mean = mean(read(Ice_file["ParamTensor"])[:,:,2])
-Ice_cov_func = CovarianceFunction(2, Matern(Lamont2015_Lambdas[3], 0.5, σ = 0.15)) # length scale l, smoothness 1
-Ice_grf = GaussianRandomField(Ice_cov_func, Spectral(), x_pts, y_pts)
-Ice_grf_sample = GaussianRandomFields.sample(Ice_grf)
-Ice_sample = Ice_grf_sample .+ Ice_param2_mean
-# h5write(joinpath(sample_dir,"Lamont2015_Ice_GRF.h5"), "Param2", Ice_sample)
-Ice_plt = heatmap(Ice_sample, 
-    title="Lamont2015 Ice Aerosol Param 2 GRF Sample", 
-    size=(700,500), 
-    clims=(-0.1,0.2))
-display(Ice_plt)
-# savefig(Ice_plt, joinpath(plots_dir, "Lamont2015_Ice_Param2_GRF.png"))
-
-Water_param2_mean = mean(read(Water_file["ParamTensor"])[:,:,2])
-Water_cov_func = CovarianceFunction(2, Matern(Lamont2015_Lambdas[4], 0.1, σ = 0.05)) # length scale l, smoothness 1
-Water_grf = GaussianRandomField(Water_cov_func, Spectral(), x_pts, y_pts)
-Water_grf_sample = GaussianRandomFields.sample(Water_grf)
-Water_sample = Water_grf_sample .+ Water_param2_mean
-# h5write(joinpath(sample_dir,"Lamont2015_Water_GRF.h5"), "Param2", Water_sample)
-Water_plt = heatmap(Water_sample, 
-    title="Lamont2015 Water Aerosol Param 2 GRF Sample", 
-    size=(700,500), 
-    clims=(0,1.25))
-display(Water_plt)
-# savefig(Water_plt, joinpath(plots_dir, "Lamont2015_Water_Param2_GRF.png"))
+OC_cov_func = CovarianceFunction(2, Matern(Lamont201
