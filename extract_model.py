@@ -3,8 +3,7 @@ import numpy as np
 import h5py 
 
 print("Current working directory:", os.getcwd())
-
-filepath = '/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/example_oco2_linear_model_201510_lamont.h5'
+filepath = '/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/example_oco2_linear_model_201510_lamont.h5'
 with h5py.File(filepath, 'r') as f:
     Fmatrix = f['model_matrix'][:,:]
     true_x = f['state_true_mean_vector'][:]
@@ -19,7 +18,7 @@ with h5py.File(filepath, 'r') as f:
     #     dataset = f[key]
     #     print(f"Key: {key}, Shape: {dataset.shape}")
 
-    print(f['state_vector_names'][27:])
+    print(f['state_vector_names'][:])
 
 # np.save("wavelengths.npy", wavelength)
 # np.save("Wollongong-2017/linear_model_Wollongong2017.npy", Fmatrix)

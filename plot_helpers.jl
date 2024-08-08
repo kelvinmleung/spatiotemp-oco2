@@ -1,3 +1,7 @@
+
+using Plots
+default()
+
 function plot_CO2_by_level(true_x, MAP, posterior_cov, est_MAP, est_cov, bar_width=0.3)
     true_CO2 = true_x[1:20]
     true_stds = zeros(20)
@@ -38,7 +42,7 @@ function plot_vertical_profile(estimate_CO2,prior_mean, title, MAP_CO2=zeros(20)
         # linewidth=2
         )
 
-     xlims!(plt, 390,410)
+     xlims!(plt, 325,475)
 
     # Check if MAP_CO2 is not all zeros and plot if it's not
     if any(MAP_CO2 .!= 0)

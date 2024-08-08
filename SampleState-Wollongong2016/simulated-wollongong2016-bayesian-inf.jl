@@ -9,7 +9,7 @@ using Serialization
 save_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots"
 
 #Load forward model 
-numpy_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Wollongong-2016/linear_model_Wollongong2016.npy")
+numpy_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2016/linear_model_Wollongong2016.npy")
 F_matrix = transpose(convert(Array{Float64}, numpy_model))
 
 #Load true_x

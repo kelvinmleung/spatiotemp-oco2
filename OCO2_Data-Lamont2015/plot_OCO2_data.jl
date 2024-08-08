@@ -61,6 +61,7 @@ for row in 1:8
 end
 
 sample_tensor
+# h5write(joinpath(sample_dir,"Lamont2015_CO2.h5"), "CO2_Profile", sample_tensor)
 
 #Generate plots from tensor
 for level in 1:20
@@ -100,7 +101,7 @@ savefig(y_plt, joinpath(plots_dir, "Lamont2015_CO2_Y1.png"))
 sample_mean = mean(co2_profiles', dims=1)
 centered_data  = co2_profiles' .- sample_mean
 sample_cov_matrix = cov(centered_data)
-h5write(joinpath(sample_dir,"SampleCov.h5"), "sample_cov_matrix", sample_cov_matrix)
+# h5write(joinpath(sample_dir,"SampleCov.h5"), "sample_cov_matrix", sample_cov_matrix)
 
 #Compare XCO2s 
 xco2_obj = retrieval_results["xco2"]
@@ -168,10 +169,12 @@ aerosol_results = OCO2file["AerosolResults"]
 #DU, SS, BC, OC, SO, Ice, water, and ST
 metadata = read(OCO2file["Metadata"]["AllAerosolTypes"])
 
+read(aerosol_results["aerosol_param"])
 OC_params = read(aerosol_results["aerosol_param"])[:,4,:]
 SO_params = read(aerosol_results["aerosol_param"])[:,5,:]
 ice_params = read(aerosol_results["aerosol_param"])[:,6,:]
 water_params = read(aerosol_results["aerosol_param"])[:,7,:]
+
 
 s1_oc = OC_params[:,1598:1605]
 s2_oc =  hcat(OC_params[:,1606],OC_params[:,1606:1612])

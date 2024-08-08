@@ -9,28 +9,28 @@ using Serialization
 save_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots"
 
 #Load forward model 
-numpy_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/linear_model_2015-10_lamont.npy")
+numpy_model = np.load("SampleState-Lamont2015/linear_model_2015-10_lamont.npy")
 F_matrix = transpose(convert(Array{Float64}, numpy_model))
 
 #Load true x
-numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/true_state_vector_2015-10_lamont.npy")
+numpy_true_x = np.load("SampleState-Lamont2015/true_state_vector_2015-10_lamont.npy")
 true_x = convert(Array{Float64}, numpy_true_x)
 
 #Load error variance and make diagonal matrix
-numpy_error_var = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/error_variance_2015-10_lamont.npy")
+numpy_error_var = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/error_variance_2015-10_lamont.npy")
 error_variance = convert(Array{Float64}, numpy_error_var)
 #check if any of the elements of error_var are 0
 @assert all(x -> x != 0, error_variance) "variance vector should not contain any zero elements."
 error_cov_matrix = Diagonal(error_variance)
 
 #Load prior cov and mean
-numpy_prior_mean = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/prior_mean_2015-10_lamont.npy")
+numpy_prior_mean = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/prior_mean_2015-10_lamont.npy")
 prior_mean = convert(Array{Float64}, numpy_prior_mean)
-numpy_prior_cov = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/prior_cov_matrix_2015-10_lamont.npy")
+numpy_prior_cov = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/prior_cov_matrix_2015-10_lamont.npy")
 prior_cov_matrix = convert(Array{Float64}, numpy_prior_cov)
 
 #Load weighting function
-numpy_h = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/weighting_func_2015-10_lamont.npy")
+numpy_h = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/weighting_func_2015-10_lamont.npy")
 h_matrix = convert(Array{Float64}, numpy_h)
 
 
@@ -39,15 +39,15 @@ n_y = size(F_matrix)[1]
 error_mean = zeros(Float64, n_y)
 error_dist = MvNormal(error_mean, error_cov_matrix)
 # Check if the file exists before loading sample_error
-if isfile("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/sample_error_lamont2015.jls")
+if isfile("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/sample_error_lamont2015.jls")
     # Load sample_error from the file
-    sample_error = open(deserialize, "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/sample_error_lamont2015.jls")
+    sample_error = open(deserialize, "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/sample_error_lamont2015.jls")
 else
     # Generate new sample_error if the file doesn't exist
     sample_error = rand(error_dist)
     
     # Save sample_error to a file
-    open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Lamont-2015/sample_error_lamont2015.jls", "w") do io
+    open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/sample_error_lamont2015.jls", "w") do io
         serialize(io, sample_error)
     end
 end
