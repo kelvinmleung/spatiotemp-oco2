@@ -8,17 +8,16 @@ include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/bayesian_helpers.jl")
 include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/plot_helpers.jl")
 include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GaussianProcessRegression/GPR_helpers.jl")
 
+#Load true state vector
 np_truex = numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/true_state_vector_2015-10_lamont.npy")
 state_vec = convert(Array{Float64}, numpy_true_x)
-SPAlbAero_tensor = repeat(reshape(state_vec[21:39],1,1,19),8,8,1)
 
 #Build State Vector Spatial Field
-
+SPAlbAero_tensor = repeat(reshape(state_vec[21:39],1,1,19),8,8,1)
 CO2_file = h5open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GRF/Lamont2015_CO2_covGRF.h5", "r")
-diff_CO2_tensor = read(CO2_file["CO2tensor-DiffCov"])
-fixed_SPAlbAero_tensor = cat(diff_CO2_tensor, SPAlbAero_tensor, dims=3)
+CO2GRF_tensor = read(CO2_file["CO2tensor-SampleCov_SEKernel"])
+fixed_SPAlbAero_tensor = cat(CO2GRF_tensor, SPAlbAero_tensor, dims=3)
 
-# h5write(joinpath("GRF","Lamont2015_State_GRF.h5"), "FixedSPAlbAero", fixed_SPAlbAero_tensor)
 
 #Construct Simulated Radiances
 numpy_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/linear_model_2015-10_lamont.npy")
@@ -69,12 +68,13 @@ end
 S
 
 # Simulate observed locations
-using Random
-obs_indices = sample(1:64, 32, replace=false)
+using StatsBase
+num_obs = 8
+obs_indices = StatsBase.sample(1:64, 8, replace=false)
 obs_coords = S[obs_indices, :]
 
 #Simulate observed values
-observed_state = zeros(32,39)
+observed_state = zeros(n,39)
 
 for (idx,(loc)) in enumerate(obs_indices)
 
@@ -108,4 +108,21 @@ end
 observed_state = observed_state[:,1:20]
 
 # Normalize output data
-X_I_mean = mean(
+X_I_mean = mean(observed_state,dims=1)
+X_I_std = std(observed_state, dims=1)
+norm_X_I = (observed_state .- X_I_mean) ./ X_I_std
+
+
+#Level 1 GPR
+using GaussianProcesses
+mZero = MeanZero()
+kern = SE(0.0,0.0)
+obs_coords
+S_I = reshape(hcat(map(t -> collect(t), obs_coords)...), 2, 8)
+norm_X_I_L1 = norm_X_I[:,1]
+gp = GP(S_I,norm_X_I_L1,mZero,kern)
+optimize!(gp, kern=true)
+gp.kernel
+opt_lambda = exp(-1.816117049367534)
+opt_sigma = exp(-0.0783378382633143)
+
