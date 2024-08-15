@@ -6,7 +6,8 @@ using Statistics
 using LinearAlgebra
 include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/bayesian_helpers.jl")
 include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/plot_helpers.jl")
-include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GaussianProcessRegression/GPR_helpers.jl")
+
+plots_dir = "/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plots/CO2_GPR"
 
 #Load true state vector
 np_truex = numpy_true_x = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/true_state_vector_2015-10_lamont.npy")
@@ -113,16 +114,68 @@ X_I_std = std(observed_state, dims=1)
 norm_X_I = (observed_state .- X_I_mean) ./ X_I_std
 
 
-#Level 1 GPR
+#Load sample variances
+Lamont2015_lambdas = [18.5, 15.5, 10, 27.5, 100,
+    100,100,100,100,100,
+    100,100,100,100, 2.5,
+    2.5, 40, 100,100,100]
+sample_cov = read(h5open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/OCO2_Data-Lamont2015/SampleCov.h5", "r")["sample_cov_matrix"])
+sample_variances = diag(sample_cov)[1]
+
+
 using GaussianProcesses
 mZero = MeanZero()
 kern = SE(0.0,0.0)
 obs_coords
 S_I = reshape(hcat(map(t -> collect(t), obs_coords)...), 2, 8)
-norm_X_I_L1 = norm_X_I[:,1]
-gp = GP(S_I,norm_X_I_L1,mZero,kern)
-optimize!(gp, kern=true)
-gp.kernel
-opt_lambda = exp(-1.816117049367534)
-opt_sigma = exp(-0.0783378382633143)
 
+#Level 1 GPR
+norm_X_I_L1 = norm_X_I[:,1]
+gp_L1 = GP(S_I,norm_X_I_L1,mZero,kern)
+optimize!(gp_L1, kern=true)
+gp_L1.kernel
+opt_lambda_L1 = exp(-1.816117049367534)
+opt_sigma_L1 = exp(-0.0783378382633143)
+
+#Make prediction for Level 1
+include("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GaussianProcessRegression/GPR_helpers.jl")
+cov_kernel_L1(p1,p2) = squared_exp_covariance(p1,p2,opt_lambda_L1^2,opt_sigma_L1^2)
+μ_zero_L1,Σ_star_L1 = get_posterior_distribution(cov_kernel_L1,S,obs_coords,norm_X_I_L1)
+μ_zero_L1
+μ_star_L1 = (μ_zero_L1 .* X_I_std[:,1]) .+ X_I_mean[:,1]
+L1_est = fill(0.0,8,8)
+for (idx,val) in enumerate(μ_star_L1)
+    row = div(idx - 1, 8) + 1
+    col = mod(idx - 1, 8) + 1
+    L1_est[row,col] = val
+end
+L1_est
+L1_true = CO2GRF_tensor[:,:,1]
+
+
+#Plot error
+L1_abs_err = (L1_true-L1_est)
+L1_abs_err_plt = heatmap(L1_abs_err,
+        clims=(-5,5), 
+        title="Lamont2015 Level 1 GPR Error, λ=$(round(opt_lambda_L1,digits=3)), σ^2=$(round(opt_sigma_L1^2, digits=3))", 
+        xlabel="X", 
+        ylabel="Y",
+        colorbar_title="CO2 ppm", 
+        size=(700,500), 
+        titlefontsize=12,
+        color=:balance)
+display(L1_abs_err_plt)
+savefig(L1_abs_err_plt, joinpath(plots_dir, "Lamont2015_CO2_GPR_L1_AbsErr.png"))
+
+L1_scaled_err = (L1_abs_err ./ L1_true) .* 100
+L1_scaled_err_plt = heatmap(L1_scaled_err,
+        clims=(-1.0,1.0), 
+        title="Lamont2015 Level 1 Scaled GPR Error, λ=$(round(opt_lambda_L1,digits=3)), σ^2=$(round(opt_sigma_L1^2, digits=3))", 
+        xlabel="X", 
+        ylabel="Y",
+        colorbar_title="% Error", 
+        size=(700,500), 
+        titlefontsize=12,
+        color=:balance)
+display(L1_scaled_err_plt)
+savefig(L1_scaled_err_plt, joinpath(plots_dir, "Lamont2015_CO2_GPR_L1_ScaledErr.png"))

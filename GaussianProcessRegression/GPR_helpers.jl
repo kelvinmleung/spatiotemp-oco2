@@ -15,6 +15,8 @@ function calc_K(obs_pixels, cov_kernel)
 end
 
 function calc_K_star(all_pixels, pixels_obs, cov_kernel)
+    println("in Calc K star")
+    println("pixels_obs = $pixels_obs")
     n = length(pixels_obs)
     m = length(all_pixels)
     K_star = zeros(Float64, n,m)
@@ -38,16 +40,16 @@ function calc_K_star_star(all_pixels, cov_kernel)
 end
 
 function get_posterior_distribution(cov_kernel, all_pixels, pixel_obs, state_obs)
+    println("all_pixels $all_pixels")
+    println("obs_pixels, $pixel_obs")
     K = calc_K(pixel_obs, cov_kernel)
-    println("row 1 K: $(K[1,:]) \n")
     K_star = calc_K_star(all_pixels, pixel_obs, cov_kernel)
-    println("row 1 K_star: $(K_star[1,:]) \n")
     K_star_star = calc_K_star_star(all_pixels, cov_kernel)
     inverse_K = inv(K)
-    println("row 1 inverse_K: $(inverse_K[1,:]) \n")
-    product = K_star'*inverse_K
-    println("row 1 produvct: $(product[1,:]) \n")
+    println("size of K = $(size(K))")
+    println("size of K_star = $(size(K_star))")
     μ_star = K_star'*inverse_K*state_obs
+    println("size of μ_star = $(size(μ_star))")
     Σ_star = K_star_star - K_star'*inv(K)*K_star
     return μ_star, Σ_star
 end 
