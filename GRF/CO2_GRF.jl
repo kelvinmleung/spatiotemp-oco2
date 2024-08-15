@@ -56,7 +56,7 @@ lambdas = [Lamont_lambda, Wollongong2016_lambda, Wollongong2017_lambda]
 
 #Cov and Correlation matrix
 numpy_cov = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/prior_cov_matrix_2015-10_lamont.npy")
-prior_cov = convert(Array{Float64}, numpy_C)[1:20, 1:20]
+prior_cov = convert(Array{Float64}, numpy_cov)[1:20, 1:20]
 prior_cov = tril(prior_cov) + tril(prior_cov)'
 variances = diag(prior_cov)
 D = sqrt.(diagm(variances))
@@ -64,7 +64,7 @@ prior_cor = inv(D)* prior_cov * inv(D)
 prior_cor= tril(prior_cor) + tril(prior_cor,-1)'
 
 #Sample covariance and correlation matrix 
-sample_cov = OCO2file = read(h5open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/OCO2_Data-Lamont2015/SampleCov.h5", "r")["sample_cov_matrix"])
+sample_cov = read(h5open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/OCO2_Data-Lamont2015/SampleCov.h5", "r")["sample_cov_matrix"])
 sample_variances = diag(sample_cov)
 sample_D = sqrt.(diagm(sample_variances))
 sample_cor = inv(sample_D) * sample_cov * inv(sample_D)
@@ -101,6 +101,11 @@ function matern_kernel(p1,p2,lambda, nu; sigma=1.0)
     return result
 end
 
+function SE_kernel(p1,p2,lambda;sigma=1.0)
+    return sigma^2 * exp(-1*((p1-p2)^2/2*lambda^2))
+end
+
+
 function cov_matrix_entry(z1,z2,C)
     @assert C == C' "C is not symmetric"
     i = Int(z1)
@@ -110,7 +115,7 @@ end
 
 
 
-function construct_cov_matrix(x_pts, y_pts, z_pts, lambdas, nu, C)
+function construct_cov_matrix(x_pts, y_pts, z_pts, lambdas,C;nu=1.0)
     n = length(x_pts)
     m = length(y_pts)
     k = length(z_pts)
@@ -134,19 +139,12 @@ function construct_cov_matrix(x_pts, y_pts, z_pts, lambdas, nu, C)
                             lambda_l = lambdas[z2]
                             lambda_kl = (lambdas[z1] + lambdas[z2])/2
                             
-                            cov_x = matern_kernel(x_pts[x1], x_pts[x2], lambda_kl, nu)
-                            cov_y = matern_kernel(y_pts[y1], y_pts[y2], lambda_kl, nu)
+                            cov_x = SE_kernel(x_pts[x1], x_pts[x2], lambda_kl)
+                            cov_y = SE_kernel(y_pts[y1], y_pts[y2], lambda_kl)
                             cov_z = cov_matrix_entry(z_pts[z1], z_pts[z2], C)
                             factor = sqrt(lambda_k)*sqrt(lambda_l)/lambda_kl
                             prod = cov_x*cov_y*cov_z*factor
                             K[row,col] = prod
-                            # if row == 21
-                            #     println("X:$(x1), $(x2), Y: $(y1), $(y2), Z: $(z1), $(z2)")
-                            #     println("lambda k = $lambda_k")
-                            #     println("lambda l = $lambda_l")
-                            #     println("factor = $factor")
-                            #     println("cov_x: $(cov_x), cov_y: $(cov_y), cov_z: $(cov_z), prod: $(prod)")
-                            # end
 
                             col +=1
                         end
@@ -162,10 +160,66 @@ function construct_cov_matrix(x_pts, y_pts, z_pts, lambdas, nu, C)
 end
 
 
-##Attempt to construct matrix with new formula
-test_cov = construct_cov_matrix(x_pts,y_pts,z_pts, fill(diffusion_lambda, 20), fixed_nu, sample_cov)
-cond(test_cov)
-eig_K = eigvals(test_cov)
+#Construct covariance matrix for Lamont and assert postitive semi-definite
+Lamont_SE_cov = construct_cov_matrix(x_pts,y_pts,z_pts, Lamont2015_lambdas, sample_cov)
+cond(Lamont_SE_cov)
+eig_K = eigvals(Lamont_SE_cov)
+
+#Create mean vector
+true_x = Lamont2015_true_xCO2
+Lamont_mean = repeat(Lamont2015_true_xCO2,64)
+
+#Create GRF and sample from it
+Lamont_loc_SE_GRF = MvNormal(Lamont_mean, Lamont_SE_cov)
+sample_loc_SE_vec = rand(Lamont_loc_SE_GRF)
+
+#Construct tensor from sample & save it
+n = length(x_pts)
+m = length(y_pts)
+k = length(z_pts)
+
+sample_loc_SE_tensor = zeros(n,m,k)
+j = 1
+for x in 1:n
+    for y in 1:m
+        for z in 1:k
+            sample_loc_SE_tensor[x,y,z] = sample_loc_SE_vec[j]
+            j+=1
+        end
+    end
+end
+
+sample_loc_SE_tensor
+
+#Save tensor
+h5write(joinpath(sample_dir,"Lamont2015_CO2_covGRF.h5"), "CO2tensor-SampleCov_SEKernel", sample_loc_SE_tensor)
+
+#Plot each level
+for level in 1:k
+    level_plt = heatmap(sample_loc_SE_tensor[:,:,level],
+        clims=(325,475), 
+        title="Lamont2015 Level $(level), Location λs, SE Kernel, Sample Covariance GRF", 
+        xlabel="X", 
+        ylabel="Y",
+        colorbar_title="CO2 Concentration (ppm)", 
+        size=(700,500), 
+        titlefontsize=10)
+    display(level_plt)
+    savefig(level_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Level$(level)_LocSESampleCov.png"))
+end
+
+
+#Plot X=1 slice
+x_plt = heatmap(sample_loc_SE_tensor[1,:,:], 
+clims=(325,475), 
+title="Lamont2015 X = 1, Location λs, SE Kernel, Sample Covariance GRF", 
+xlabel="Level", 
+ylabel="Y", 
+colorbar_title="CO2 Concentration (ppm)", 
+size=(700,500), 
+titlefontsize=10)
+display(x_plt)
+savefig(x_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_X1_LocSESampleCov.png"))
 
 
 
@@ -345,19 +399,4 @@ for loc in 1:3
 #     savefig(diffusion_y_plt, joinpath(plots_dir, "$(labels[loc])_CO2_GRF_Y1_DiffCor.png"))
 
 end
-
-Lamont2015_model = np.load("SampleState-Lamont2015/linear_model_2015-10_lamont.npy")
-Lamont2015_model = convert(Array{Float64}, Lamont2015_model)
-
-
-Wollongong2016_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2016/linear_model_Wollongong2016.npy")
-Wollongong2016_model = convert(Array{Float64}, Wollongong2016_model)
-
-Wollongong2017_model = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Wollongong2017/linear_model_Wollongong2017.npy")
-Wollongong2017_model = convert(Array{Float64}, Wollongong2017_model)
-
-
-Lamont2015_model == Wollongong2016_model
-
-Wollongong2016_model == Wollongong2017_model
 
