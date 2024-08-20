@@ -46,8 +46,9 @@ function get_posterior_distribution(cov_kernel, all_pixels, pixel_obs, state_obs
     K_star = calc_K_star(all_pixels, pixel_obs, cov_kernel)
     K_star_star = calc_K_star_star(all_pixels, cov_kernel)
     inverse_K = inv(K)
+    println("inverse_K $inverse_K")
     println("size of K = $(size(K))")
-    println("size of K_star = $(size(K_star))")
+    println("size of K_star = $K_star)")
     μ_star = K_star'*inverse_K*state_obs
     println("size of μ_star = $(size(μ_star))")
     Σ_star = K_star_star - K_star'*inv(K)*K_star
