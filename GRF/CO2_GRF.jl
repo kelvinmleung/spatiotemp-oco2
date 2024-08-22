@@ -49,11 +49,6 @@ Wollongong2017_lambda = mean([40.5, 20, 30, 42.5, 100,
                 7.5, 12, 100,100,100])
 
 
-labels = ["Lamont2015", "Wollongong2016", "Wollongong2017"]
-true_CO2s = [Lamont2015_true_xCO2, Wollongong2016_true_xCO2, Wollongong2017_true_xCO2]
-lambdas = [Lamont_lambda, Wollongong2016_lambda, Wollongong2017_lambda]
-
-
 #Cov and Correlation matrix
 numpy_cov = np.load("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/SampleState-Lamont2015/prior_cov_matrix_2015-10_lamont.npy")
 prior_cov = convert(Array{Float64}, numpy_cov)[1:20, 1:20]
@@ -81,7 +76,8 @@ savefig(cov_plt, joinpath("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/Plot
 
 #Constants
 diffusion_coef = 16.0 / (10^6)  
-diffusion_lambda = sqrt(diffusion_coef)  # km
+diffusion_lambdas = fill(sqrt(diffusion_coef), 20)
+std_lambdas = fill(1.0,20)  # km
 fixed_nu = 1.0
 x_pts = range(0.65,step=1.3, length=8)
 y_pts = range(1.15, step=2.3, length=8)
@@ -161,7 +157,7 @@ end
 
 
 #Construct covariance matrix for Lamont and assert postitive semi-definite
-Lamont_SE_cov = construct_cov_matrix(x_pts,y_pts,z_pts, Lamont2015_lambdas, sample_cov)
+Lamont_SE_std_cov = construct_cov_matrix(x_pts,y_pts,z_pts, std_lambdas, sample_cov)
 cond(Lamont_SE_cov)
 eig_K = eigvals(Lamont_SE_cov)
 
@@ -170,42 +166,42 @@ true_x = Lamont2015_true_xCO2
 Lamont_mean = repeat(Lamont2015_true_xCO2,64)
 
 #Create GRF and sample from it
-Lamont_loc_SE_GRF = MvNormal(Lamont_mean, Lamont_SE_cov)
-sample_loc_SE_vec = rand(Lamont_loc_SE_GRF)
+Lamont_std_SE_GRF = MvNormal(Lamont_mean, Lamont_SE_std_cov)
+sample_std_SE_vec = rand(Lamont_std_SE_GRF)
 
 #Construct tensor from sample & save it
 n = length(x_pts)
 m = length(y_pts)
 k = length(z_pts)
 
-sample_loc_SE_tensor = zeros(n,m,k)
+sample_std_SE_tensor = zeros(n,m,k)
 j = 1
 for x in 1:n
     for y in 1:m
         for z in 1:k
-            sample_loc_SE_tensor[x,y,z] = sample_loc_SE_vec[j]
+            sample_std_SE_tensor[x,y,z] = sample_std_SE_vec[j]
             j+=1
         end
     end
 end
 
-sample_loc_SE_tensor
+sample_std_SE_tensor
 
 #Save tensor
-h5write(joinpath(sample_dir,"Lamont2015_CO2_covGRF.h5"), "CO2tensor-SampleCov_SEKernel", sample_loc_SE_tensor)
+h5write(joinpath(sample_dir,"Lamont2015_CO2_covGRF.h5"), "CO2tensor-SampleCov_Std_SEKernel", sample_std_SE_tensor)
 
 #Plot each level
 for level in 1:k
-    level_plt = heatmap(sample_loc_SE_tensor[:,:,level],
+    level_plt = heatmap(sample_std_SE_tensor[:,:,level],
         clims=(325,475), 
-        title="Lamont2015 Level $(level), Location λs, SE Kernel, Sample Covariance GRF", 
+        title="Lamont2015 Level $(level), λ = 1.0, SE Kernel, Sample Covariance GRF", 
         xlabel="X", 
         ylabel="Y",
         colorbar_title="CO2 Concentration (ppm)", 
         size=(700,500), 
         titlefontsize=10)
     display(level_plt)
-    savefig(level_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Level$(level)_LocSESampleCov.png"))
+    # savefig(level_plt, joinpath(plots_dir, "Lamont2015_CO2_GRF_Level$(level)_LocSESampleCov.png"))
 end
 
 
