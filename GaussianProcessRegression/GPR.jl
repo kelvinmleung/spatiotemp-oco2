@@ -166,7 +166,7 @@ err1_plt = heatmap(err1,
             clims=(-50.0,50.0))
 savefig(err1_plt, joinpath(plots_dir, "Level$(level)_Err1.png"))
 total_err1 = (sum(err1 .^2))/64
-h5write(joinpath(sample_dir,"Lamont2015_CO2GPR_MSE.h5"), "Level$(level)_err1", total_err1)
+# h5write(joinpath(sample_dir,"Lamont2015_CO2GPR_MSE.h5"), "Level$(level)_err1", total_err1)
 
 
 #Optimize GP Kernel parameters
@@ -197,7 +197,7 @@ err2_plt = heatmap(err2,
             clims=(-50.0,50.0))
 savefig(err2_plt, joinpath(plots_dir, "Level$(level)_Err2.png"))
 total_err2 = (sum(err2 .^2))/64
-h5write(joinpath(sample_dir,"Lamont2015_CO2GPR_MSE.h5"), "Level$(level)_err2", total_err2)
+# h5write(joinpath(sample_dir,"Lamont2015_CO2GPR_MSE.h5"), "Level$(level)_err2", total_err2)
 
 
 single_pixel_tensor = fill(0.0, 8,8,20)
@@ -237,3 +237,28 @@ for level in 1:20
     println(mse)
     # h5write(joinpath(sample_dir,"Lamont2015_CO2SP_MSE.h5"), "Level$(level)", mse)
 end
+
+#Plot spatial pred1 pred 2 and single pred
+GPR_MSE_file = h5open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GaussianProcessRegression/Lamont2015_CO2GPR_MSE.h5", "r")
+SP_MSE_file = h5open("/Users/Camila/Desktop/OCO-2_UROP/spatiotemp-oco2/GaussianProcessRegression/Lamont2015_CO2SP_MSE.h5", "r")
+GPR_Pred1_MSE = fill(0.0,20)
+GPR_Pred2_MSE = fill(0.0,20)
+SP_MSE = fill(0.0,20)
+for level in 1:20
+    pred1 = read(GPR_MSE_file["Level$(level)_err1"])
+    GPR_Pred1_MSE[level] = pred1
+
+    pred2 = read(GPR_MSE_file["Level$(level)_err2"])
+    GPR_Pred2_MSE[level] = pred2
+
+    sp_pred = read(SP_MSE_file["Level$level"])
+    SP_MSE[level] = sp_pred
+end
+
+mse_plt = plot(1:20, GPR_Pred1_MSE, label="GPR MSE Pre-Optimization", lw=2, marker=:circle)
+plot!(1:20, GPR_Pred2_MSE, label="GPR MSE Post-Optimization", lw=2, marker=:square)
+plot!(1:20, SP_MSE, label="Single Pixel", lw=2, marker=:diamond)
+xlabel!("Levels")
+ylabel!("Mean Squared Error")
+title!("Lamont 2015 MSE Comparison")
+savefig(mse_plt, joinpath(plots_dir, "Lamont2015_MSEComp.png"))
